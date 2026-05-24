@@ -1,0 +1,89 @@
+name: news_admin
+description: A new Flutter application.
+
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+
+version: 6.0.2+22
+
+environment:
+  sdk: '>=3.0.5 <4.0.0'
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flutter_web_plugins:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.6
+  flutter_riverpod: ^2.4.9
+  svg_flutter: ^0.0.1
+  cloud_firestore: ^5.0.2
+  firebase_core: ^3.1.1
+  firebase_auth: ^5.1.1
+  animated_flip_counter: ^0.3.4
+  image_picker: ^1.0.7
+  url_launcher: ^6.2.3
+  firebase_storage: ^12.1.0
+  fluttertoast: ^8.2.4
+  firebase_ui_firestore: ^1.6.4
+  cached_network_image: ^3.3.1
+  pointer_interceptor: ^0.10.1+1
+  data_table_2: ^2.5.10
+  flutter_html: ^3.0.0-beta.2
+  line_icons: ^2.0.3
+  youtube_parser: ^2.1.2
+  html_unescape: ^2.0.0
+  fl_chart: ^0.68.0
+  http: ^1.2.0
+  rounded_loading_button_plus: ^3.0.1
+  googleapis_auth: ^1.6.0
+  intl: ^0.19.0
+  html_editor_enhanced: ^2.6.0
+  html: ^0.15.4
+  # html_editor_plus: ^0.0.5
+  # flutter_quill: ^9.3.5
+  # flutter_quill_extensions: ^9.3.5
+  # quill_html_converter: ^9.3.5
+  # delta_to_html: ^0.2.2
+  # quill_html_editor: ^2.2.8
+
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.3
+
+flutter_icons:
+  image_path: "assets/images/logo.png"
+  web:
+    generate: true
+
+flutter:
+  uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  assets:
+    - assets/images/
+
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/google_fonts/Poppins-Light.ttf
+          weight: 300
+        - asset: assets/google_fonts/Poppins-Regular.ttf
+          weight: 400
+        - asset: assets/google_fonts/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/google_fonts/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/google_fonts/Poppins-Bold.ttf
+          weight: 700
+        - asset: assets/google_fonts/Poppins-ExtraBold.ttf
+          weight: 800
