@@ -38,3 +38,8 @@ app.*.symbols
 
 # Obfuscation related
 app.*.map.json
+
+# Firebase CLI local cache & logs
+.firebase/
+firebase-debug.log
+firebase-debug.*.log

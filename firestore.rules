@@ -1,0 +1,87 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+  	match /categories/{document=**} {
+    	allow read : if true;
+      allow write: if isUserSignedIn() && isAdmin();
+    }
+    
+    match /tags/{document=**} {
+    	allow read : if true;
+      allow write: if isUserSignedIn() && (isAdmin() || isAuthor());
+    }
+    
+    match /articles/{document=**} {
+    	allow read : if true;
+      allow update: if 
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views'])) || 
+        (isUserSignedIn() && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']))) ||
+      	 isAdmin() || isAuthor();
+      allow create, delete: if isUserSignedIn() && (isAdmin() || isAuthor());
+    }
+    
+    match /events/{document=**} {
+    	allow read : if true;
+      allow update: if 
+        isUserSignedIn() ||
+      	 isAdmin() || isAuthor();
+      allow create, delete: if isUserSignedIn() && (isAdmin() || isAuthor());
+    }
+    
+    match /notifications/{document=**} {
+    	allow read : if true;
+      allow write: if isUserSignedIn() && isAdmin();
+    }
+    
+    match /comments/{document=**} {
+    	allow read : if true;
+      allow create, update : if isUserSignedIn();
+      allow delete: if isUserSignedIn();
+    }
+    
+    match /purchases/{document=**} {
+    	allow read : if true;
+      allow create: if isUserSignedIn();
+    }
+    
+    match /settings/{document=**} {
+    	allow read : if true;
+      allow write: if isUserSignedIn() && isAdmin();
+    }
+    
+    match /user_stats/{document=**} {
+    	allow read : if true;
+      allow write: if isUserSignedIn();
+    }
+    
+    match /purchase_stats/{document=**} {
+    	allow read : if true;
+      allow write: if isUserSignedIn();
+    }
+    
+    match /users/{document=**} {
+    	allow read : if true;
+      allow create: if isUserSignedIn() && request.auth.uid == request.resource.id;
+      allow update: if isUserSignedIn() && (
+      	request.auth.uid == request.resource.id || isAdmin()
+      )
+      
+      allow delete: if isUserSignedIn() && request.auth.uid == resource.id;
+    }
+		
+  
+  	function isUserSignedIn (){
+    	return request.auth != null;
+    }
+    
+    function isAdmin (){
+    	return "admin" in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    function isAuthor (){
+    	return "author" in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+  }
+}

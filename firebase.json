@@ -8,6 +8,12 @@
             "web": "1:291089351662:web:8f9e830e536532803904ff",
             "windows": "1:291089351662:web:4f8f176ac57b56dc3904ff"
           }
+        },
+        "lib/firebase_options_dev.dart": {
+          "projectId": "track-network-dev",
+          "configurations": {
+            "web": "1:199255076107:web:47e54cd5b3cc20ebbb460e"
+          }
         }
       }
     }
@@ -41,5 +47,12 @@
         "destination": "/index.html"
       }
     ]
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
   }
 }

@@ -11,6 +11,36 @@ This project is the Flutter web admin surface for Track Field Network. It is use
 - Web-oriented admin UI with responsive sidebar layout.
 - Rich content editing through `html_editor_enhanced`.
 
+## Environments (Dev / Prod)
+
+**Default policy: any new code, rules, indexes, or Cloud Functions change MUST target the dev environment first. Only touch prod when the user explicitly says so.**
+
+| Env  | Firebase Project ID           | Web App ID                                  | Options file                                                   |
+| ---- | ----------------------------- | ------------------------------------------- | -------------------------------------------------------------- |
+| Dev  | `track-network-dev`           | `1:199255076107:web:47e54cd5b3cc20ebbb460e` | [lib/firebase_options_dev.dart](lib/firebase_options_dev.dart) |
+| Prod | `the-track-and-field-network` | `1:291089351662:web:8f9e830e536532803904ff` | [lib/firebase_options.dart](lib/firebase_options.dart)         |
+
+### Flavor wiring
+
+- [lib/main.dart](lib/main.dart) reads `const _flavor = String.fromEnvironment('FLAVOR', defaultValue: 'prod')` and picks `dev_options.DefaultFirebaseOptions.currentPlatform` vs `prod_options.DefaultFirebaseOptions.currentPlatform`. Both options files are imported with aliases.
+- [firebase.json](firebase.json) registers both options files under `flutter.platforms.dart` and includes top-level `firestore` (`firestore.rules` + `firestore.indexes.json`) and `storage` (`storage.rules`) sections used by `firebase deploy`.
+
+### Run / deploy commands
+
+```bash
+# Dev (default for everyday work)
+flutter run -d chrome --dart-define=FLAVOR=dev
+flutter build web   --dart-define=FLAVOR=dev
+firebase deploy --project=track-network-dev
+
+# Prod (only when explicitly requested)
+flutter run -d chrome --dart-define=FLAVOR=prod
+flutter build web   --dart-define=FLAVOR=prod
+firebase deploy --project=the-track-and-field-network
+```
+
+See [../DEV_ENVIRONMENT.md](../DEV_ENVIRONMENT.md) at the workspace root for the full clone manifest and manual console checklist.
+
 ## Startup And App Boot Flow
 
 ### Entry point
@@ -18,7 +48,8 @@ This project is the Flutter web admin surface for Track Field Network. It is use
 - `lib/main.dart`
   - Initializes Flutter bindings.
   - Enables path URL strategy for web.
-  - Initializes Firebase with `firebase_options.dart`.
+  - Reads the `FLAVOR` dart-define and picks dev vs prod `DefaultFirebaseOptions` (defaults to `prod` if not set).
+  - Initializes Firebase with the selected options.
   - Wraps the app with `ProviderScope`.
 
 ### Root widget
