@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:news_admin/components/category_dropdown.dart';
 import 'package:news_admin/components/custom_buttons.dart';
 import 'package:news_admin/components/dialogs.dart';
+import 'package:news_admin/components/polls_section.dart';
 import 'package:news_admin/configs/constants.dart';
 import 'package:news_admin/mixins/event_mixin.dart';
 import 'package:news_admin/mixins/textfields.dart';
@@ -36,7 +37,8 @@ class EventForm extends ConsumerStatefulWidget {
   ConsumerState<EventForm> createState() => _EventFormState();
 }
 
-class _EventFormState extends ConsumerState<EventForm> with TextFields, EventMixin {
+class _EventFormState extends ConsumerState<EventForm>
+    with TextFields, EventMixin {
   var formKey = GlobalKey<FormState>();
 
   final titleCtlr = TextEditingController();
@@ -61,8 +63,12 @@ class _EventFormState extends ConsumerState<EventForm> with TextFields, EventMix
     if (widget.event != null) {
       _event = widget.event;
       titleCtlr.text = _event?.title ?? '';
-      startDateCtlr.text = _event != null ? DateFormat('dd-MM-yyyy hh:mm a').format(_event!.startDateTime) : '';
-      endDateCtlr.text = _event != null ? DateFormat('dd-MM-yyyy hh:mm a').format(_event!.endDateTime) : '';
+      startDateCtlr.text = _event != null
+          ? DateFormat('dd-MM-yyyy hh:mm a').format(_event!.startDateTime)
+          : '';
+      endDateCtlr.text = _event != null
+          ? DateFormat('dd-MM-yyyy hh:mm a').format(_event!.endDateTime)
+          : '';
       thumbnailUrlCtlr.text = _event?.thumbnailUrl ?? '';
       locationCtlr.text = _event?.location ?? '';
       watchSourceCtlr.text = _event?.watchUrl ?? '';
@@ -97,7 +103,8 @@ class _EventFormState extends ConsumerState<EventForm> with TextFields, EventMix
 
   Future<String?> _getImageUrl() async {
     if (_selectedImage != null) {
-      final String? imageUrl = await FirebaseService().uploadImageToFirebaseHosting(_selectedImage!, 'event_thumbnails');
+      final String? imageUrl = await FirebaseService()
+          .uploadImageToFirebaseHosting(_selectedImage!, 'event_thumbnails');
       return imageUrl;
     } else {
       return thumbnailUrlCtlr.text;
@@ -115,8 +122,10 @@ class _EventFormState extends ConsumerState<EventForm> with TextFields, EventMix
           thumbnailUrlCtlr.text = imageUrl;
           final String status = setEventStatus(
               event: _event,
-              start: DateFormat('dd-MM-yyyy hh:mm a').parse((startDateCtlr.text).toString()),
-              end: DateFormat('dd-MM-yyyy hh:mm a').parse((endDateCtlr.text).toString()),
+              start: DateFormat('dd-MM-yyyy hh:mm a')
+                  .parse((startDateCtlr.text).toString()),
+              end: DateFormat('dd-MM-yyyy hh:mm a')
+                  .parse((endDateCtlr.text).toString()),
               isDraft: false);
           final Event event = _eventData(status);
 
@@ -172,13 +181,19 @@ class _EventFormState extends ConsumerState<EventForm> with TextFields, EventMix
     final createdAt = _event?.createdAt ?? DateTime.now().toUtc();
     final updatedAt = _event?.updatedAt ?? DateTime.now().toUtc();
     final String title = titleCtlr.text.isEmpty ? 'Untitled' : titleCtlr.text;
-    final String thumbnail = thumbnailUrlCtlr.text.isEmpty ? '' : thumbnailUrlCtlr.text;
-    final eventStartDateTime = DateFormat('dd-MM-yyyy hh:mm a').parse((startDateCtlr.text).toString());
-    final eventEndDateTime = DateFormat('dd-MM-yyyy hh:mm a').parse((endDateCtlr.text).toString());
-    final String? location = locationCtlr.text.isEmpty ? null : locationCtlr.text;
+    final String thumbnail =
+        thumbnailUrlCtlr.text.isEmpty ? '' : thumbnailUrlCtlr.text;
+    final eventStartDateTime =
+        DateFormat('dd-MM-yyyy hh:mm a').parse((startDateCtlr.text).toString());
+    final eventEndDateTime =
+        DateFormat('dd-MM-yyyy hh:mm a').parse((endDateCtlr.text).toString());
+    final String? location =
+        locationCtlr.text.isEmpty ? null : locationCtlr.text;
     final String? summary = summaryCtlr.text.isEmpty ? null : summaryCtlr.text;
-    final String? watchUrl = watchSourceCtlr.text.isEmpty ? null : watchSourceCtlr.text;
-    final String? resultUrl = resultSourceCtlr.text.isEmpty ? null : resultSourceCtlr.text;
+    final String? watchUrl =
+        watchSourceCtlr.text.isEmpty ? null : watchSourceCtlr.text;
+    final String? resultUrl =
+        resultSourceCtlr.text.isEmpty ? null : resultSourceCtlr.text;
 
     //Author Data
     final Author? author = _authorData();
@@ -211,7 +226,10 @@ class _EventFormState extends ConsumerState<EventForm> with TextFields, EventMix
       if (_event?.author == null) {
         author = Author(id: user.id, name: user.name, imageUrl: user.imageUrl);
       } else {
-        author = Author(id: _event!.author!.id, name: _event!.author!.name, imageUrl: _event!.author!.imageUrl);
+        author = Author(
+            id: _event!.author!.id,
+            name: _event!.author!.name,
+            imageUrl: _event!.author!.imageUrl);
       }
     }
     return author;
@@ -221,7 +239,10 @@ class _EventFormState extends ConsumerState<EventForm> with TextFields, EventMix
     EventCategory? category;
     if (_selectedCategoryId != null) {
       final categories = ref.read(categoriesProvider);
-      final String categoryName = categories.where((element) => element.id == _selectedCategoryId).first.name;
+      final String categoryName = categories
+          .where((element) => element.id == _selectedCategoryId)
+          .first
+          .name;
       category = EventCategory(id: _selectedCategoryId!, name: categoryName);
     }
 
@@ -248,12 +269,16 @@ class _EventFormState extends ConsumerState<EventForm> with TextFields, EventMix
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                CustomButtons.customOutlineButton(context, icon: Icons.remove_red_eye, text: 'Preview', onPressed: () => _handlePreview()),
+                CustomButtons.customOutlineButton(context,
+                    icon: Icons.remove_red_eye,
+                    text: 'Preview',
+                    onPressed: () => _handlePreview()),
                 const SizedBox(
                   width: 10,
                 ),
                 Visibility(
-                  visible: _event == null || _event?.status == eventStatus.keys.elementAt(0),
+                  visible: _event == null ||
+                      _event?.status == eventStatus.keys.elementAt(0),
                   child: CustomButtons.submitButton(context,
                       buttonController: _draftBtnCtlr,
                       text: 'Save Draft',
@@ -281,7 +306,9 @@ class _EventFormState extends ConsumerState<EventForm> with TextFields, EventMix
         ],
       ),
       body: SingleChildScrollView(
-        padding: Responsive.isMobile(context) ? const EdgeInsets.all(20) : const EdgeInsets.symmetric(vertical: 50, horizontal: 100),
+        padding: Responsive.isMobile(context)
+            ? const EdgeInsets.all(20)
+            : const EdgeInsets.symmetric(vertical: 50, horizontal: 100),
         child: Form(
           key: formKey,
           child: Column(
@@ -317,7 +344,8 @@ class _EventFormState extends ConsumerState<EventForm> with TextFields, EventMix
                       hasDatePick: true,
                       inputType: TextInputType.datetime,
                       onPickDate: () async {
-                        FocusScope.of(context).requestFocus(FocusNode()); // Prevent keyboard popup
+                        FocusScope.of(context).requestFocus(
+                            FocusNode()); // Prevent keyboard popup
                         DateTime? pickedDate = await showDatePicker(
                           context: context,
                           initialDate: DateTime.now(),
@@ -340,7 +368,9 @@ class _EventFormState extends ConsumerState<EventForm> with TextFields, EventMix
                             );
 
                             // Format and set value
-                            startDateCtlr.text = DateFormat('dd-MM-yyyy hh:mm a').format(finalDateTime);
+                            startDateCtlr.text =
+                                DateFormat('dd-MM-yyyy hh:mm a')
+                                    .format(finalDateTime);
                           }
                         }
                       },
@@ -356,7 +386,8 @@ class _EventFormState extends ConsumerState<EventForm> with TextFields, EventMix
                       inputType: TextInputType.datetime,
                       hasDatePick: true,
                       onPickDate: () async {
-                        FocusScope.of(context).requestFocus(FocusNode()); // Prevent keyboard popup
+                        FocusScope.of(context).requestFocus(
+                            FocusNode()); // Prevent keyboard popup
                         DateTime? pickedDate = await showDatePicker(
                           context: context,
                           initialDate: DateTime.now(),
@@ -379,7 +410,8 @@ class _EventFormState extends ConsumerState<EventForm> with TextFields, EventMix
                             );
 
                             // Format and set value
-                            endDateCtlr.text = DateFormat('dd-MM-yyyy hh:mm a').format(finalDateTime);
+                            endDateCtlr.text = DateFormat('dd-MM-yyyy hh:mm a')
+                                .format(finalDateTime);
                           }
                         }
                       },
@@ -438,6 +470,23 @@ class _EventFormState extends ConsumerState<EventForm> with TextFields, EventMix
                 validationRequired: false,
                 minLines: 3,
               ),
+              const SizedBox(height: 40),
+              const Divider(),
+              const SizedBox(height: 20),
+              if (_event != null)
+                PollsSection(eventId: _event!.id)
+              else
+                Container(
+                  padding: const EdgeInsets.all(15),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: const Text(
+                    'Save the event first to add polls.',
+                    style: TextStyle(color: Colors.blueGrey),
+                  ),
+                ),
             ],
           ),
         ),

@@ -22,12 +22,32 @@ service cloud.firestore {
       allow create, delete: if isUserSignedIn() && (isAdmin() || isAuthor());
     }
     
-    match /events/{document=**} {
+    match /events/{eventId} {
     	allow read : if true;
       allow update: if 
         isUserSignedIn() ||
       	 isAdmin() || isAuthor();
       allow create, delete: if isUserSignedIn() && (isAdmin() || isAuthor());
+    }
+
+    // Polls live as a subcollection under events.
+    // Anyone may read; only admins/authors may create/update/delete poll docs.
+    // Vote count updates triggered by user votes are handled in a transaction
+    // alongside writing the user's own vote doc — we allow signed-in users to
+    // update only the `options` field so that the transactional increment works.
+    match /events/{eventId}/polls/{pollId} {
+      allow read: if true;
+      allow create, delete: if isUserSignedIn() && (isAdmin() || isAuthor());
+      allow update: if (isUserSignedIn() && (isAdmin() || isAuthor()))
+        || (isUserSignedIn()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['options', 'updated_at']));
+
+      // One vote document per user, keyed by uid.
+      match /votes/{userId} {
+        allow read: if true;
+        allow create, update: if isUserSignedIn() && request.auth.uid == userId;
+        allow delete: if isUserSignedIn() && (request.auth.uid == userId || isAdmin());
+      }
     }
     
     match /notifications/{document=**} {
