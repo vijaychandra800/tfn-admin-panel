@@ -6,7 +6,8 @@ import '../../../configs/constants.dart';
 import '../../../utils/reponsive.dart';
 import 'users.dart';
 
-final CollectionReference colRef = FirebaseFirestore.instance.collection('users');
+final CollectionReference colRef =
+    FirebaseFirestore.instance.collection('users');
 
 class SortUsersButton extends StatelessWidget {
   const SortUsersButton({
@@ -25,7 +26,9 @@ class SortUsersButton extends StatelessWidget {
         height: 40,
         alignment: Alignment.center,
         padding: const EdgeInsets.only(left: 15, right: 15),
-        decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade400), borderRadius: BorderRadius.circular(25)),
+        decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade400),
+            borderRadius: BorderRadius.circular(25)),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -66,7 +69,9 @@ class SortUsersButton extends StatelessWidget {
         }).toList();
       },
       onSelected: (dynamic value) {
-        ref.read(sortByUsersTextProvider.notifier).update((state) => sortByUsers[value].toString());
+        ref
+            .read(sortByUsersTextProvider.notifier)
+            .update((state) => sortByUsers[value].toString());
 
         if (value == 'all') {
           final newQuery = colRef.orderBy('created_at', descending: true);
@@ -90,6 +95,12 @@ class SortUsersButton extends StatelessWidget {
         }
         if (value == 'disabled') {
           final newQuery = colRef.where('disabled', isEqualTo: true);
+          ref.read(usersQueryProvider.notifier).update((state) => newQuery);
+        }
+        if (value == 'muted') {
+          // Anyone with a `muted_until` field set is considered muted (the
+          // field is removed entirely on unmute).
+          final newQuery = colRef.where('muted_until', isNull: false);
           ref.read(usersQueryProvider.notifier).update((state) => newQuery);
         }
         if (value == 'subscribed') {

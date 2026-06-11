@@ -269,10 +269,28 @@ class FirebaseService {
         .orderBy('created_at', descending: true);
   }
 
+  /// Filters the global comments stream by target type ('article' or 'event').
+  static Query commentsQueryByTargetType(String type) {
+    return FirebaseFirestore.instance
+        .collection('comments')
+        .where('target_type', isEqualTo: type)
+        .orderBy('created_at', descending: true);
+  }
+
   static Query articleCommentsQuery(Article article) {
     return FirebaseFirestore.instance
         .collection('comments')
         .where('article_id', isEqualTo: article.id)
+        .orderBy('created_at', descending: true);
+  }
+
+  /// Filters the global comments stream to a single event (by id).
+  /// Backed by the composite index (target_type, target_id, created_at desc).
+  static Query commentsQueryByEvent(String eventId) {
+    return FirebaseFirestore.instance
+        .collection('comments')
+        .where('target_type', isEqualTo: Comment.typeEvent)
+        .where('target_id', isEqualTo: eventId)
         .orderBy('created_at', descending: true);
   }
 
@@ -296,6 +314,21 @@ class FirebaseService {
 
   Future updateUserProfile(UserModel user, Map<String, dynamic> data) async {
     await firestore.collection('users').doc(user.id).update(data);
+  }
+
+  /// Mutes a user until [until]. Pass `null` via [unmuteUser] to clear.
+  Future muteUser(String userId, DateTime until) async {
+    await firestore
+        .collection('users')
+        .doc(userId)
+        .set({'muted_until': until}, SetOptions(merge: true));
+  }
+
+  Future unmuteUser(String userId) async {
+    await firestore
+        .collection('users')
+        .doc(userId)
+        .set({'muted_until': FieldValue.delete()}, SetOptions(merge: true));
   }
 
   Future saveAuthor(UserModel user) async {

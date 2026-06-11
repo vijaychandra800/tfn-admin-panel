@@ -12,12 +12,14 @@ import '../../../models/comment_user.dart';
 import '../../../providers/user_data_provider.dart';
 import '../../../services/firebase_service.dart';
 
-final articleCommentsQueryprovider = StateProvider.family.autoDispose<Query, Article>((ref, article) {
+final articleCommentsQueryprovider =
+    StateProvider.family.autoDispose<Query, Article>((ref, article) {
   final query = FirebaseService.articleCommentsQuery(article);
   return query;
 });
 
-class ArticleCommentsAndReply extends ConsumerWidget with TextFields, CommentMixin {
+class ArticleCommentsAndReply extends ConsumerWidget
+    with TextFields, CommentMixin {
   const ArticleCommentsAndReply({super.key, required this.article});
 
   final Article article;
@@ -32,22 +34,30 @@ class ArticleCommentsAndReply extends ConsumerWidget with TextFields, CommentMix
           titleSpacing: 20,
           toolbarHeight: 65,
           backgroundColor: Theme.of(context).primaryColor,
-          leading: IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+          leading: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.close)),
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Comments',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600, color: Colors.white),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600, color: Colors.white),
               ),
               Text(
                 article.title,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: Colors.white),
               ),
             ],
           ),
         ),
-        bottomNavigationBar: commentTextField(context, controller: textController, onSubmitted: () => _onSubmitted(context, ref, textController)),
+        bottomNavigationBar: commentTextField(context,
+            controller: textController,
+            onSubmitted: () => _onSubmitted(context, ref, textController)),
         body: Column(
           children: [
             buildComments(
@@ -69,12 +79,14 @@ class ArticleCommentsAndReply extends ConsumerWidget with TextFields, CommentMix
         final String id = FirebaseService.getUID('comments');
         final createdAt = DateTime.now();
 
-        final commentUser = CommentUser(id: user!.id, name: user.name, imageUrl: user.imageUrl);
+        final commentUser =
+            CommentUser(id: user!.id, name: user.name, imageUrl: user.imageUrl);
         final Comment comment = Comment(
           id: id,
-          articleId: article.id,
+          targetType: Comment.typeArticle,
+          targetId: article.id,
+          targetTitle: article.title,
           articleAuthorId: user.id,
-          articleTitle: article.title,
           commentUser: commentUser,
           createdAt: createdAt,
           comment: textController.text,

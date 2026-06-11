@@ -12,6 +12,9 @@ class UserModel {
   Subscription? subscription;
   String? platform;
 
+  /// When set and in the future, the user is muted from posting comments.
+  DateTime? mutedUntil;
+
   UserModel({
     required this.id,
     required this.email,
@@ -24,6 +27,7 @@ class UserModel {
     this.updatedAt,
     this.subscription,
     this.platform,
+    this.mutedUntil,
   });
 
   factory UserModel.fromFirebase(DocumentSnapshot snap) {
@@ -35,15 +39,24 @@ class UserModel {
       name: d['name'],
       role: d['role'] ?? [],
       isDisbaled: d['disabled'] ?? false,
-      createdAt: d['created_at'] == null ? null : (d['created_at'] as Timestamp).toDate().toLocal(),
-      updatedAt: d['updated_at'] == null ? null : (d['updated_at'] as Timestamp).toDate().toLocal(),
+      createdAt: d['created_at'] == null
+          ? null
+          : (d['created_at'] as Timestamp).toDate().toLocal(),
+      updatedAt: d['updated_at'] == null
+          ? null
+          : (d['updated_at'] as Timestamp).toDate().toLocal(),
       bookmarks: d['bookmarks'] ?? [],
-      subscription: d['subscription'] == null ? null : Subscription.fromFirestore(d['subscription']),
+      subscription: d['subscription'] == null
+          ? null
+          : Subscription.fromFirestore(d['subscription']),
       platform: d['platform'],
+      mutedUntil: d['muted_until'] == null
+          ? null
+          : (d['muted_until'] as Timestamp).toDate().toLocal(),
     );
   }
 
-  static Map<String, dynamic> getMap (UserModel d){
+  static Map<String, dynamic> getMap(UserModel d) {
     return {
       'name': d.name,
       'email': d.email,

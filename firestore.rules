@@ -57,7 +57,8 @@ service cloud.firestore {
     
     match /comments/{document=**} {
     	allow read : if true;
-      allow create, update : if isUserSignedIn();
+      allow create : if isUserSignedIn() && !isMuted();
+      allow update : if isUserSignedIn();
       allow delete: if isUserSignedIn();
     }
     
@@ -102,6 +103,14 @@ service cloud.firestore {
     
     function isAuthor (){
     	return "author" in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    // Returns true when the authenticated user has an active mute window.
+    // `muted_until` is removed entirely on unmute, so a missing field means
+    // "not muted".
+    function isMuted (){
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return 'muted_until' in userDoc && userDoc.muted_until > request.time;
     }
   }
 }

@@ -6,7 +6,8 @@ import '../../../configs/constants.dart';
 import '../../../utils/reponsive.dart';
 import 'comments.dart';
 
-final CollectionReference colRef = FirebaseFirestore.instance.collection('comments');
+final CollectionReference colRef =
+    FirebaseFirestore.instance.collection('comments');
 
 class SortCommentsButton extends StatelessWidget {
   const SortCommentsButton({super.key, required this.ref});
@@ -21,7 +22,9 @@ class SortCommentsButton extends StatelessWidget {
         height: 40,
         alignment: Alignment.center,
         padding: const EdgeInsets.only(left: 15, right: 15),
-        decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade400), borderRadius: BorderRadius.circular(25)),
+        decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade400),
+            borderRadius: BorderRadius.circular(25)),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -62,21 +65,10 @@ class SortCommentsButton extends StatelessWidget {
         }).toList();
       },
       onSelected: (dynamic value) {
-        ref.read(sortByCommentTextProvider.notifier).update((state) => sortByComments[value].toString());
-        final notifier = ref.read(commentsQueryprovider.notifier);
-
-        if (value == 'all') {
-          final newQuery = colRef.orderBy('created_at', descending: true);
-          notifier.update((state) => newQuery);
-        }
-        if (value == 'new') {
-          final newQuery = colRef.orderBy('created_at', descending: true);
-          notifier.update((state) => newQuery);
-        }
-        if (value == 'old') {
-          final newQuery = colRef.orderBy('created_at', descending: false);
-          notifier.update((state) => newQuery);
-        }
+        ref
+            .read(sortByCommentTextProvider.notifier)
+            .update((state) => sortByComments[value].toString());
+        rebuildCommentsQuery(ref);
       },
     );
   }

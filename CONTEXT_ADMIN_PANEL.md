@@ -245,11 +245,30 @@ This project uses lightweight Riverpod state rather than a centralized domain la
 ### Comments
 
 - Main files:
-  - `lib/tabs/admin_tabs/comments/`
-  - `lib/tabs/author_tabs/author_article_comments.dart`
+  - `lib/tabs/admin_tabs/comments/comments.dart` — list shell, holds `commentsQueryprovider` + `commentsTargetFilterProvider`.
+  - `lib/tabs/admin_tabs/comments/filter_comments_target.dart` — All / Articles / Events dropdown next to the sort button.
+  - `lib/tabs/admin_tabs/comments/filter_comments_event.dart` — per-event picker (visible when the target filter is Events); narrows the list to comments for a single event via the `(target_type, target_id, created_at desc)` index.
+  - `lib/tabs/admin_tabs/comments/sort_comments.dart` — composes target-type filter with sort order; delegates query assembly to `FirebaseService.rebuildCommentsQuery(...)`.
+  - `lib/services/firebase_service.dart` → `commentsQueryByEvent(eventId)` for the per-event filter.
+  - `lib/tabs/admin_tabs/comments/article_comments_reply.dart` — admin reply flow; writes new `target_*` fields and mirrors `article_*`.
+  - `lib/tabs/author_tabs/author_article_comments.dart` — author scope, unchanged.
+  - `lib/mixins/comment_mixin.dart` — per-row Article/Event badge plus an overflow menu (Delete + Mute 1d / 7d / 30d / forever + Unmute), gated by `UserMixin.hasAdminAccess`.
+- Firestore shape:
+  - Flat `comments` collection. Each doc carries `target_type` (`'article'` | `'event'`), `target_id`, `target_title`.
+  - For article comments, legacy `article_id`, `article_title`, `article_author_id` are still written so the existing composite index `(article_id asc, created_at desc)` and the author-articles query keep working without backfill.
+  - New composite indexes (deployed via `firestore.indexes.json`): `(target_type asc, created_at desc)` and `(target_type asc, target_id asc, created_at desc)`.
 - Behavior:
-  - Admins can moderate globally.
-  - Authors have access to comments tied to their own articles.
+  - Admins can moderate globally across both article and event comments, filter by target, and mute/unmute users from any row.
+  - Authors retain access to comments tied to their own articles (legacy `article_author_id` mirror is what powers that query).
+
+### User muting
+
+- Storage: `users.muted_until: Timestamp` on the user doc. Field absent = not muted. Unmute deletes the field via `FieldValue.delete()` rather than setting null, so `where('muted_until', isNull: false)` cleanly lists muted users.
+- Service: `FirebaseService.muteUser(userId, DateTime until)` (merge) and `FirebaseService.unmuteUser(userId)`.
+- UI entry points: per-row overflow menu in [lib/mixins/comment_mixin.dart](lib/mixins/comment_mixin.dart); a new "Muted Users" option in [lib/tabs/admin_tabs/users/sort_users_button.dart](lib/tabs/admin_tabs/users/sort_users_button.dart) and the `'muted'` entry in `sortByUsers` in [lib/configs/constants.dart](lib/configs/constants.dart).
+- Enforcement: [firestore.rules](firestore.rules) — `isMuted()` reads the user doc, returns true when `'muted_until' in userDoc && userDoc.muted_until > request.time`. Comments `create` requires `!isMuted()`; `update` / `delete` remain open to signed-in users.
+- Mobile app side: [tfn-app/lib/models/user_model.dart](../tfn-app/lib/models/user_model.dart) parses `muted_until` into `mutedUntil` and both `Comments` and `EventCommentsSection` check it before posting.
+- No automated expiry yet — muted users become un-muted by an admin clicking Unmute, or simply by the `request.time > muted_until` check passing once the timer elapses (the field stays on the doc, but rule allows writes again).
 
 ### Users And Authors
 

@@ -27,11 +27,26 @@ const Map<int, List<dynamic>> menuListAuthor = {
   2: ['Comments', LineIcons.comment],
 };
 
-const Map<String, String> articleStatus = {'draft': 'Draft', 'pending': 'Pending', 'live': 'Live', 'archive': 'Archived'};
+const Map<String, String> articleStatus = {
+  'draft': 'Draft',
+  'pending': 'Pending',
+  'live': 'Live',
+  'archive': 'Archived'
+};
 
-const Map<String, String> eventStatus = {'draft': 'Draft', 'upcoming': 'Upcoming', 'covered': 'Covered','live': 'Live', 'archive': 'Archived'};
+const Map<String, String> eventStatus = {
+  'draft': 'Draft',
+  'upcoming': 'Upcoming',
+  'covered': 'Covered',
+  'live': 'Live',
+  'archive': 'Archived'
+};
 
-const Map<String, String> contentTypes = {'normal': "Normal", 'video': 'Video', 'audio': 'Audio'};
+const Map<String, String> contentTypes = {
+  'normal': "Normal",
+  'video': 'Video',
+  'audio': 'Audio'
+};
 
 const Map<String, String> priceStatus = {'free': 'Free', 'premium': 'Premium'};
 
@@ -71,6 +86,7 @@ const Map<String, String> sortByUsers = {
   'admin': 'Admins',
   'author': 'Authors',
   'disabled': "Disabled Users",
+  'muted': "Muted Users",
   'subscribed': "Subscribed Users",
   'android': 'Android Users',
   'ios': 'iOS Users'
