@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:news_admin/models/event.dart';
+import 'package:news_admin/tabs/admin_tabs/comments/comments_selection_provider.dart';
 import 'package:news_admin/tabs/admin_tabs/comments/filter_comments_event.dart';
 import 'package:news_admin/tabs/admin_tabs/comments/filter_comments_target.dart';
 import 'package:news_admin/tabs/admin_tabs/comments/sort_comments.dart';
@@ -52,23 +53,62 @@ class Comments extends ConsumerWidget with CommentMixin, UserMixin {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Reset selection whenever the underlying query (filters/sort) changes.
+    ref.listen<Query>(commentsQueryprovider, (prev, next) {
+      ref.read(commentsSelectionModeProvider.notifier).state = false;
+      ref.read(commentsSelectedIdsProvider.notifier).state = <String>{};
+    });
+
+    final selectionMode = ref.watch(commentsSelectionModeProvider);
+    final selectedCount = ref.watch(commentsSelectedIdsProvider).length;
+
     return Container(
       color: Colors.white,
       child: Column(
         children: [
-          AppBarMixin.buildTitleBar(context, title: 'All Comments', buttons: [
-            FilterCommentsByTargetButton(ref: ref),
-            const SizedBox(width: 10),
-            const FilterCommentsByEventButton(),
-            const SizedBox(width: 10),
-            SortCommentsButton(ref: ref),
-          ]),
+          AppBarMixin.buildTitleBar(context,
+              title: selectionMode
+                  ? '$selectedCount selected'
+                  : 'All Comments',
+              buttons: [
+                if (!selectionMode) ...[
+                  FilterCommentsByTargetButton(ref: ref),
+                  const SizedBox(width: 10),
+                  const FilterCommentsByEventButton(),
+                  const SizedBox(width: 10),
+                  SortCommentsButton(ref: ref),
+                  const SizedBox(width: 10),
+                ],
+                _selectionToggleButton(context, ref, selectionMode),
+              ]),
           buildComments(context,
               ref: ref,
               isAuthorArticles: false,
+              selectable: true,
               queryProvider: commentsQueryprovider),
         ],
       ),
+    );
+  }
+
+  Widget _selectionToggleButton(
+      BuildContext context, WidgetRef ref, bool selectionMode) {
+    if (selectionMode) {
+      return TextButton.icon(
+        onPressed: () {
+          ref.read(commentsSelectionModeProvider.notifier).state = false;
+          ref.read(commentsSelectedIdsProvider.notifier).state = <String>{};
+        },
+        icon: const Icon(Icons.close, size: 18),
+        label: const Text('Cancel'),
+      );
+    }
+    return OutlinedButton.icon(
+      onPressed: () {
+        ref.read(commentsSelectionModeProvider.notifier).state = true;
+      },
+      icon: const Icon(Icons.check_box_outlined, size: 18),
+      label: const Text('Select'),
     );
   }
 }

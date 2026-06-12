@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:news_admin/models/comment.dart';
+import 'package:news_admin/tabs/admin_tabs/comments/comments_selection_provider.dart';
 import '../mixins/user_mixin.dart';
 import '../utils/toasts.dart';
 import 'package:rounded_loading_button_plus/rounded_loading_button.dart';
@@ -20,6 +21,7 @@ mixin CommentMixin {
     required queryProvider,
     required WidgetRef ref,
     bool isSingleArticle = false,
+    bool selectable = false,
   }) {
     return FirestoreQueryBuilder(
       query: ref.watch(queryProvider),
@@ -41,7 +43,8 @@ mixin CommentMixin {
             snapshot: snapshot,
             ref: ref,
             isAuthorArticles: isAuthorArticles,
-            isSingleArticle: isSingleArticle);
+            isSingleArticle: isSingleArticle,
+            selectable: selectable);
       },
     );
   }
@@ -52,33 +55,128 @@ mixin CommentMixin {
     required bool isAuthorArticles,
     required WidgetRef ref,
     required bool isSingleArticle,
+    required bool selectable,
   }) {
+    final bool selectionMode =
+        selectable && ref.watch(commentsSelectionModeProvider);
     return Expanded(
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 50),
-        itemCount: snapshot.docs.length,
-        shrinkWrap: true,
-        separatorBuilder: (context, index) => const Divider(),
-        itemBuilder: (BuildContext context, int index) {
-          if (snapshot.hasMore && index + 1 == snapshot.docs.length) {
-            snapshot.fetchMore();
-          }
-          final List<Comment> comments =
-              snapshot.docs.map((e) => Comment.fromFirebase(e)).toList();
-          final Comment comment = comments[index];
-          return _buildListItem(
-              context, comment, ref, isAuthorArticles, isSingleArticle);
-        },
+      child: Column(
+        children: [
+          if (selectionMode)
+            _selectionToolbar(context, ref, snapshot: snapshot),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 50),
+              itemCount: snapshot.docs.length,
+              shrinkWrap: true,
+              separatorBuilder: (context, index) => const Divider(),
+              itemBuilder: (BuildContext context, int index) {
+                if (snapshot.hasMore && index + 1 == snapshot.docs.length) {
+                  snapshot.fetchMore();
+                }
+                final List<Comment> comments =
+                    snapshot.docs.map((e) => Comment.fromFirebase(e)).toList();
+                final Comment comment = comments[index];
+                return _buildListItem(context, comment, ref, isAuthorArticles,
+                    isSingleArticle, selectionMode);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  ListTile _buildListItem(BuildContext context, Comment comment, WidgetRef ref,
-      bool isAuthorArticles, bool isSingleArticle) {
+  Widget _selectionToolbar(
+    BuildContext context,
+    WidgetRef ref, {
+    required FirestoreQueryBuilderSnapshot snapshot,
+  }) {
+    final selected = ref.watch(commentsSelectedIdsProvider);
+    final loadedIds = snapshot.docs.map((d) => d.id).toSet();
+    final bool allSelected =
+        loadedIds.isNotEmpty && selected.containsAll(loadedIds);
+    return Material(
+      color: Colors.blue.withValues(alpha: 0.06),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: Row(
+          children: [
+            Checkbox(
+              value: allSelected
+                  ? true
+                  : (selected.isEmpty
+                      ? false
+                      : null), // tri-state: partial selection
+              tristate: true,
+              onChanged: (_) {
+                final next = Set<String>.from(selected);
+                if (allSelected) {
+                  next.removeAll(loadedIds);
+                } else {
+                  next.addAll(loadedIds);
+                }
+                ref.read(commentsSelectedIdsProvider.notifier).state = next;
+              },
+            ),
+            const SizedBox(width: 6),
+            Text(
+              allSelected
+                  ? 'All ${loadedIds.length} on this page selected'
+                  : (selected.isEmpty
+                      ? 'Select all on this page (${loadedIds.length})'
+                      : '${selected.length} selected'),
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const Spacer(),
+            if (snapshot.hasMore)
+              TextButton.icon(
+                onPressed: snapshot.isFetchingMore ? null : snapshot.fetchMore,
+                icon: const Icon(Icons.expand_more, size: 18),
+                label: const Text('Load more'),
+              ),
+            const SizedBox(width: 8),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.redAccent.withValues(alpha: 0.4),
+                disabledForegroundColor: Colors.white,
+              ),
+              onPressed: selected.isEmpty
+                  ? null
+                  : () => _onBulkDelete(context, ref, selected.toList()),
+              icon: const Icon(Icons.delete_outline, size: 18),
+              label: Text('Delete selected (${selected.length})'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListItem(BuildContext context, Comment comment, WidgetRef ref,
+      bool isAuthorArticles, bool isSingleArticle, bool selectionMode) {
     final bool showTarget = !isSingleArticle && comment.targetTitle.isNotEmpty;
+    final selectedIds =
+        selectionMode ? ref.watch(commentsSelectedIdsProvider) : const <String>{};
+    final bool isSelected = selectedIds.contains(comment.id);
+
+    void toggleSelected() {
+      final next = Set<String>.from(selectedIds);
+      if (isSelected) {
+        next.remove(comment.id);
+      } else {
+        next.add(comment.id);
+      }
+      ref.read(commentsSelectedIdsProvider.notifier).state = next;
+    }
+
     return ListTile(
       minVerticalPadding: 10,
       horizontalTitleGap: 16,
+      tileColor: isSelected ? Colors.blue.withValues(alpha: 0.06) : null,
+      onTap: selectionMode ? toggleSelected : null,
       title: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -99,8 +197,24 @@ mixin CommentMixin {
           ],
         ],
       ),
-      leading: UserMixin.getUserImageByUrl(
-          imageUrl: comment.commentUser.imageUrl, radius: 40, iconSize: 20),
+      leading: selectionMode
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Checkbox(
+                  value: isSelected,
+                  onChanged: (_) => toggleSelected(),
+                ),
+                UserMixin.getUserImageByUrl(
+                    imageUrl: comment.commentUser.imageUrl,
+                    radius: 40,
+                    iconSize: 20),
+              ],
+            )
+          : UserMixin.getUserImageByUrl(
+              imageUrl: comment.commentUser.imageUrl,
+              radius: 40,
+              iconSize: 20),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -130,8 +244,9 @@ mixin CommentMixin {
           ),
         ],
       ),
-      trailing:
-          isAuthorArticles ? null : _moderationActions(context, comment, ref),
+      trailing: (isAuthorArticles || selectionMode)
+          ? null
+          : _moderationActions(context, comment, ref),
     );
   }
 
@@ -288,6 +403,42 @@ mixin CommentMixin {
         } else {
           openTestingToast(context);
         }
+      },
+    );
+  }
+
+  void _onBulkDelete(
+      BuildContext context, WidgetRef ref, List<String> ids) async {
+    if (ids.isEmpty) return;
+    final deleteBtnController = RoundedLoadingButtonController();
+    CustomDialogs.openActionDialog(
+      context,
+      actionBtnController: deleteBtnController,
+      title: 'Delete ${ids.length} comments?',
+      message:
+          'Do you want to delete the ${ids.length} selected comments?\nWarning: This can not be undone.',
+      onAction: () async {
+        if (!UserMixin.hasAdminAccess(ref.read(userDataProvider))) {
+          openTestingToast(context);
+          return;
+        }
+        deleteBtnController.start();
+        try {
+          await FirebaseService().deleteDocumentsBatch('comments', ids);
+        } catch (e) {
+          deleteBtnController.error();
+          if (context.mounted) {
+            openSuccessToast(context, 'Failed to delete: $e');
+          }
+          return;
+        }
+        ref.invalidate(commnetsCountProvider);
+        ref.read(commentsSelectedIdsProvider.notifier).state = <String>{};
+        ref.read(commentsSelectionModeProvider.notifier).state = false;
+        deleteBtnController.success();
+        if (!context.mounted) return;
+        Navigator.pop(context);
+        openSuccessToast(context, 'Deleted ${ids.length} comments');
       },
     );
   }

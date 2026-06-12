@@ -29,6 +29,22 @@ class FirebaseService {
     await firestore.collection(collectionName).doc(documentName).delete();
   }
 
+  /// Bulk-delete documents from a collection in a single atomic write batch.
+  /// Firestore caps a batch at 500 ops, so split if more.
+  Future deleteDocumentsBatch(
+      String collectionName, List<String> documentIds) async {
+    if (documentIds.isEmpty) return;
+    const int chunkSize = 450;
+    for (int start = 0; start < documentIds.length; start += chunkSize) {
+      final end = (start + chunkSize).clamp(0, documentIds.length);
+      final batch = firestore.batch();
+      for (final id in documentIds.sublist(start, end)) {
+        batch.delete(firestore.collection(collectionName).doc(id));
+      }
+      await batch.commit();
+    }
+  }
+
   Future updateUserAccess(
       {required String userId, required bool shouldDisable}) async {
     return await firestore
