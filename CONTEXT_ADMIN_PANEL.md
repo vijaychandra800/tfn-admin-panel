@@ -261,6 +261,14 @@ This project uses lightweight Riverpod state rather than a centralized domain la
   - Admins can moderate globally across both article and event comments, filter by target, and mute/unmute users from any row.
   - Authors retain access to comments tied to their own articles (legacy `article_author_id` mirror is what powers that query).
 
+### Fanzone Chat Lifespan
+
+- App settings keys: `chat_read_only_hours` and `chat_purge_days` live in `settings/app` and are exposed in the admin App Settings > Others tab.
+- Admin UI: `lib/tabs/admin_tabs/app_settings/others_tab_settings.dart` adds the read-only and purge inputs; `app_setting_providers.dart` hydrates them; `app_settings_view.dart` persists them.
+- Enforcement: `firestore.rules` uses `eventChatWritable()` to block event comment create/update after `event.end_date_time + chat_read_only_hours` (admins still bypass for moderation).
+- Purge: `functions/index.js` schedules `purgeExpiredEventChats` every 24 hours and deletes event comments once the event has been ended for `chat_purge_days`.
+- Consumer app behavior: `tfn-app/lib/components/event_comments_section.dart` keeps existing comments visible, but freezes the composer, replies, and reactions after the read-only window.
+
 ### User muting
 
 - Storage: `users.muted_until: Timestamp` on the user doc. Field absent = not muted. Unmute deletes the field via `FieldValue.delete()` rather than setting null, so `where('muted_until', isNull: false)` cleanly lists muted users.
