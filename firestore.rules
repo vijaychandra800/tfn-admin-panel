@@ -57,8 +57,10 @@ service cloud.firestore {
     
     match /comments/{document=**} {
     	allow read : if true;
-      allow create : if isUserSignedIn() && !isMuted();
-      allow update : if isUserSignedIn();
+      allow create : if isUserSignedIn() && !isMuted()
+        && (isAdmin() || eventChatWritable(request.resource.data));
+      allow update : if isUserSignedIn()
+        && (isAdmin() || eventChatWritable(resource.data));
       allow delete: if isUserSignedIn();
     }
     
@@ -111,6 +113,26 @@ service cloud.firestore {
     function isMuted (){
       let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
       return 'muted_until' in userDoc && userDoc.muted_until > request.time;
+    }
+
+    // Admin-configured Fanzone read-only window (hours after an event ends).
+    // Falls back to 72h when the setting is absent.
+    function chatReadOnlyHours (){
+      let s = get(/databases/$(database)/documents/settings/app).data;
+      return 'chat_read_only_hours' in s ? s.chat_read_only_hours : 72;
+    }
+
+    // Event chats stay writable only until `end_date_time + chatReadOnlyHours`.
+    // Article comments (and comments missing a target_type) are always
+    // writable here. Deletion is handled separately by the purge job.
+    function eventChatWritable (commentData){
+      return !('target_type' in commentData)
+        || commentData.target_type != 'event'
+        || (
+          request.time <
+          get(/databases/$(database)/documents/events/$(commentData.target_id)).data.end_date_time
+            + duration.value(chatReadOnlyHours(), 'h')
+        );
     }
   }
 }

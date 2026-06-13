@@ -8,6 +8,12 @@ const db = admin.firestore();
 // Firebase Collection
 const eventsCollection = "events";
 const notificationsCollection = "notifications";
+const commentsCollection = "comments";
+const settingsCollection = "settings";
+
+// Defaults for the Fanzone chat lifespan, overridable from settings/app.
+const DEFAULT_CHAT_PURGE_DAYS = 7;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 exports.updateEventStatus = onSchedule("every 1 minutes", async () => {
   try {
@@ -19,7 +25,8 @@ exports.updateEventStatus = onSchedule("every 1 minutes", async () => {
 
     // Update status to "upcoming" if event is in the future
     try {
-      const upcomingEvents = await db.collection(eventsCollection)
+      const upcomingEvents = await db
+          .collection(eventsCollection)
           .where("start_date_time", ">", now)
           .where("status", "not-in", ["upcoming"])
           .get();
@@ -37,7 +44,8 @@ exports.updateEventStatus = onSchedule("every 1 minutes", async () => {
 
     // Update status to "live" if event is currently happening
     try {
-      const liveEvents = await db.collection(eventsCollection)
+      const liveEvents = await db
+          .collection(eventsCollection)
           .where("start_date_time", "<=", now)
           .where("end_date_time", ">", now)
           .where("status", "not-in", ["live"])
@@ -54,10 +62,10 @@ exports.updateEventStatus = onSchedule("every 1 minutes", async () => {
       console.error("Error fetching live events:", error);
     }
 
-
     // Update status to "covered" if event has ended
     try {
-      const coveredEvents = await db.collection(eventsCollection)
+      const coveredEvents = await db
+          .collection(eventsCollection)
           .where("end_date_time", "<=", now)
           .where("status", "not-in", ["covered"])
           .get();
@@ -90,10 +98,13 @@ exports.updateEventStatus = onSchedule("every 1 minutes", async () => {
 exports.sendEventNotification = onSchedule("every 5 minutes", async () => {
   try {
     const now = Timestamp.now();
-    const notifyTime = Timestamp.fromDate(new Date(Date.now() + 30 * 60 * 1000));
+    const notifyTime = Timestamp.fromDate(
+        new Date(Date.now() + 30 * 60 * 1000),
+    );
 
     // Fetch events starting in the next 30 minutes
-    const upcomingEvents = await db.collection(eventsCollection)
+    const upcomingEvents = await db
+        .collection(eventsCollection)
         .where("start_date_time", ">=", now)
         .where("start_date_time", "<=", notifyTime)
         .orderBy("start_date_time")
@@ -107,13 +118,19 @@ exports.sendEventNotification = onSchedule("every 5 minutes", async () => {
     console.log(`Found ${upcomingEvents.size} upcoming events.`);
 
     // Fetch notifications already sent from the notifications table
-    const notificationsSnapshot = await db.collection(notificationsCollection).get();
-    const notifiedEventIds = notificationsSnapshot.docs.map((doc) => doc.data().event_id);
+    const notificationsSnapshot = await db
+        .collection(notificationsCollection)
+        .get();
+    const notifiedEventIds = notificationsSnapshot.docs.map(
+        (doc) => doc.data().event_id,
+    );
 
     console.log(`Already notified events:`, notifiedEventIds);
 
     // Filter out events that have already been notified
-    const eventsToNotify = upcomingEvents.docs.filter((eventDoc) => !notifiedEventIds.includes(eventDoc.id));
+    const eventsToNotify = upcomingEvents.docs.filter(
+        (eventDoc) => !notifiedEventIds.includes(eventDoc.id),
+    );
 
     if (eventsToNotify.length === 0) {
       console.log("All upcoming events have already been notified.");
@@ -157,9 +174,14 @@ exports.sendEventNotification = onSchedule("every 5 minutes", async () => {
 
         await db.collection(notificationsCollection).add(notificationData);
 
-        console.log(`Notification saved in FireStore for event: ${eventData.title}`);
+        console.log(
+            `Notification saved in FireStore for event: ${eventData.title}`,
+        );
       } catch (error) {
-        console.error(`Error sending notification for event ${eventData.title}:`, error);
+        console.error(
+            `Error sending notification for event ${eventData.title}:`,
+            error,
+        );
       }
     }
 
@@ -168,3 +190,83 @@ exports.sendEventNotification = onSchedule("every 5 minutes", async () => {
     console.error("Error sending notifications:", error);
   }
 });
+
+// Purge event (Fanzone) chats once the event has been over for longer than
+// the admin-configured `chat_purge_days` (default 7). Runs once a day, finds
+// events ended before the cutoff, and batch-deletes every comment whose
+// target is that event. Deletes are chunked to respect Firestore's 500-write
+// batch limit.
+exports.purgeExpiredEventChats = onSchedule("every 24 hours", async () => {
+  try {
+    // Resolve the configurable purge window from settings/app.
+    let purgeDays = DEFAULT_CHAT_PURGE_DAYS;
+    try {
+      const settingsSnap = await db
+          .collection(settingsCollection)
+          .doc("app")
+          .get();
+      const configured = settingsSnap.get("chat_purge_days");
+      if (typeof configured === "number" && configured > 0) {
+        purgeDays = configured;
+      }
+    } catch (error) {
+      console.error("Error reading chat_purge_days, using default:", error);
+    }
+
+    const cutoff = Timestamp.fromMillis(Date.now() - purgeDays * MS_PER_DAY);
+    console.log(
+        `Purging event chats ended before ${cutoff.toDate()} ` +
+        `(purge window: ${purgeDays} days).`,
+    );
+
+    const endedEvents = await db
+        .collection(eventsCollection)
+        .where("end_date_time", "<=", cutoff)
+        .get();
+
+    if (endedEvents.empty) {
+      console.log("No expired event chats to purge.");
+      return;
+    }
+
+    let totalDeleted = 0;
+    for (const eventDoc of endedEvents.docs) {
+      totalDeleted += await deleteEventComments(eventDoc.id);
+    }
+
+    console.log(
+        `Purged ${totalDeleted} comments across ` +
+        `${endedEvents.size} expired events.`,
+    );
+  } catch (error) {
+    console.error("Error purging expired event chats:", error);
+  }
+});
+
+/**
+ * Deletes every comment belonging to a given event, in batches of 450.
+ * @param {string} eventId The event whose comments should be removed.
+ * @return {Promise<number>} The number of comments deleted.
+ */
+async function deleteEventComments(eventId) {
+  let deleted = 0;
+  // Loop until no more matching comments remain.
+  for (;;) {
+    const snap = await db
+        .collection(commentsCollection)
+        .where("target_type", "==", "event")
+        .where("target_id", "==", eventId)
+        .limit(450)
+        .get();
+
+    if (snap.empty) break;
+
+    const batch = db.batch();
+    snap.docs.forEach((doc) => batch.delete(doc.ref));
+    await batch.commit();
+    deleted += snap.size;
+
+    if (snap.size < 450) break;
+  }
+  return deleted;
+}

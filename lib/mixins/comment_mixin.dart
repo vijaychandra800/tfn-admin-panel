@@ -140,7 +140,8 @@ mixin CommentMixin {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.redAccent,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor: Colors.redAccent.withValues(alpha: 0.4),
+                disabledBackgroundColor:
+                    Colors.redAccent.withValues(alpha: 0.4),
                 disabledForegroundColor: Colors.white,
               ),
               onPressed: selected.isEmpty
@@ -158,8 +159,9 @@ mixin CommentMixin {
   Widget _buildListItem(BuildContext context, Comment comment, WidgetRef ref,
       bool isAuthorArticles, bool isSingleArticle, bool selectionMode) {
     final bool showTarget = !isSingleArticle && comment.targetTitle.isNotEmpty;
-    final selectedIds =
-        selectionMode ? ref.watch(commentsSelectedIdsProvider) : const <String>{};
+    final selectedIds = selectionMode
+        ? ref.watch(commentsSelectedIdsProvider)
+        : const <String>{};
     final bool isSelected = selectedIds.contains(comment.id);
 
     void toggleSelected() {
@@ -212,9 +214,7 @@ mixin CommentMixin {
               ],
             )
           : UserMixin.getUserImageByUrl(
-              imageUrl: comment.commentUser.imageUrl,
-              radius: 40,
-              iconSize: 20),
+              imageUrl: comment.commentUser.imageUrl, radius: 40, iconSize: 20),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

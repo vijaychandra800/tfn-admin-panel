@@ -67,9 +67,7 @@ class Comments extends ConsumerWidget with CommentMixin, UserMixin {
       child: Column(
         children: [
           AppBarMixin.buildTitleBar(context,
-              title: selectionMode
-                  ? '$selectedCount selected'
-                  : 'All Comments',
+              title: selectionMode ? '$selectedCount selected' : 'All Comments',
               buttons: [
                 if (!selectionMode) ...[
                   FilterCommentsByTargetButton(ref: ref),

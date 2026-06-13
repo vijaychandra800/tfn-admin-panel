@@ -49,6 +49,9 @@ class AppSettings extends ConsumerWidget with TextFields {
     final privacyCtlr = ref.watch(privacyUrlTextfieldProvider);
     final termsofUseCtlr = ref.watch(termsOfUserTextfieldProvider);
 
+    final chatReadOnlyHoursCtlr = ref.watch(chatReadOnlyHoursProvider);
+    final chatPurgeDaysCtlr = ref.watch(chatPurgeDaysProvider);
+
     final fbCtlr = ref.watch(fbProvider);
     final youtubeCtlr = ref.watch(youtubeProvider);
     final twitterCtrl = ref.watch(twitterProvider);
@@ -76,7 +79,8 @@ class AppSettings extends ConsumerWidget with TextFields {
             isScrollable: true,
             tabAlignment: TabAlignment.start,
             indicatorColor: Theme.of(context).primaryColor,
-            labelStyle: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey.shade900, fontWeight: FontWeight.w500),
+            labelStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Colors.grey.shade900, fontWeight: FontWeight.w500),
           ),
           title: AppBarMixin.buildTitleBar(
             context,
@@ -123,6 +127,10 @@ class AppSettings extends ConsumerWidget with TextFields {
                     featureAutoSlide: featureAutoSlide,
                     readingTime: readingTimeEnabled,
                     termsOfUseUrl: termsofUseCtlr.text,
+                    chatReadOnlyHours:
+                        int.tryParse(chatReadOnlyHoursCtlr.text.trim()) ?? 72,
+                    chatPurgeDays:
+                        int.tryParse(chatPurgeDaysCtlr.text.trim()) ?? 7,
                   );
 
                   final data = AppSettingsModel.getMap(appSettingsModel);
@@ -195,7 +203,8 @@ class AppSettings extends ConsumerWidget with TextFields {
                     padding: const EdgeInsets.all(20),
                     child: Container(
                       padding: const EdgeInsets.all(30),
-                      decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300)),
+                      decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300)),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -245,14 +254,19 @@ class AppSettings extends ConsumerWidget with TextFields {
                     padding: const EdgeInsets.all(20),
                     child: Container(
                       padding: const EdgeInsets.all(30),
-                      decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300)),
+                      decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300)),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 20),
                             child: buildTextField(context,
-                                controller: fbCtlr, hint: 'Facebook Page', title: 'Facebook', hasImageUpload: false, validationRequired: false),
+                                controller: fbCtlr,
+                                hint: 'Facebook Page',
+                                title: 'Facebook',
+                                hasImageUpload: false,
+                                validationRequired: false),
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 20),
@@ -275,7 +289,11 @@ class AppSettings extends ConsumerWidget with TextFields {
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 20),
                             child: buildTextField(context,
-                                controller: instaCtlr, hint: 'Instagram url', title: 'Instagram', hasImageUpload: false, validationRequired: false),
+                                controller: instaCtlr,
+                                hint: 'Instagram url',
+                                title: 'Instagram',
+                                hasImageUpload: false,
+                                validationRequired: false),
                           ),
                         ],
                       ),
@@ -287,9 +305,3 @@ class AppSettings extends ConsumerWidget with TextFields {
     );
   }
 }
-
-
-
-
-
-

@@ -30,6 +30,11 @@ class AppSettingsModel {
   final LicenseType? license;
   final String? postDetailsLayout, categoryTileLayout;
 
+  /// Fanzone (event chat) lifespan controls. After an event ends, the chat
+  /// becomes read-only for [chatReadOnlyHours] hours, then all of the event's
+  /// comments are purged once it has been ended for [chatPurgeDays] days.
+  final int? chatReadOnlyHours, chatPurgeDays;
+
   AppSettingsModel({
     this.featured,
     this.tags,
@@ -59,6 +64,8 @@ class AppSettingsModel {
     this.featureAutoSlide,
     this.date,
     this.termsOfUseUrl,
+    this.chatReadOnlyHours,
+    this.chatPurgeDays,
   });
 
   factory AppSettingsModel.fromFirestore(DocumentSnapshot snap) {
@@ -72,7 +79,9 @@ class AppSettingsModel {
       supportEmail: d['email'],
       privacyUrl: d['privacy_url'],
       website: d['website'],
-      social: d['social'] != null ? AppSettingsSocialInfo.fromMap(d['social']) : null,
+      social: d['social'] != null
+          ? AppSettingsSocialInfo.fromMap(d['social'])
+          : null,
       ads: d['ads'] != null ? AdsModel.fromMap(d['ads']) : null,
       license: _getLicenseType(d['license']),
       popular: d['popular'] ?? true,
@@ -84,14 +93,20 @@ class AppSettingsModel {
       audioTab: d['audio_tab'] ?? false,
       drawerMenu: d['drawer_menu'] ?? true,
       logoAtCenter: d['logo_center'] ?? false,
-      postDetailsLayout: d['post_details_layout'] ?? postDetailsLayoutTypes.keys.elementAt(0),
-      categoryTileLayout: d['category_tile_layout'] ?? categoryTileLayoutTypes.keys.elementAt(0),
-      homeCategories: (d['home_categories'] as List<dynamic>?)?.map((e) => HomeCategory.fromMap(e)).toList(),
+      postDetailsLayout:
+          d['post_details_layout'] ?? postDetailsLayoutTypes.keys.elementAt(0),
+      categoryTileLayout: d['category_tile_layout'] ??
+          categoryTileLayoutTypes.keys.elementAt(0),
+      homeCategories: (d['home_categories'] as List<dynamic>?)
+          ?.map((e) => HomeCategory.fromMap(e))
+          .toList(),
       readingTime: d['reading_time'] ?? true,
       searchBox: d['search_box'] ?? true,
       featureAutoSlide: d['feature_autoslide'] ?? true,
       date: d['date'] ?? true,
       termsOfUseUrl: d['terms_of_use'],
+      chatReadOnlyHours: (d['chat_read_only_hours'] as num?)?.toInt() ?? 72,
+      chatPurgeDays: (d['chat_purge_days'] as num?)?.toInt() ?? 7,
     );
   }
 
@@ -115,7 +130,8 @@ class AppSettingsModel {
       'email': d.supportEmail,
       'privacy_url': d.privacyUrl,
       'website': d.website,
-      'social': d.social != null ? AppSettingsSocialInfo.getMap(d.social!) : null,
+      'social':
+          d.social != null ? AppSettingsSocialInfo.getMap(d.social!) : null,
       'popular': d.popular,
       'comments': d.comments,
       'likes': d.likes,
@@ -127,12 +143,15 @@ class AppSettingsModel {
       'logo_center': d.logoAtCenter,
       'post_details_layout': d.postDetailsLayout,
       'category_tile_layout': d.categoryTileLayout,
-      'home_categories': d.homeCategories?.map((e) => HomeCategory.getMap(e)).toList(),
+      'home_categories':
+          d.homeCategories?.map((e) => HomeCategory.getMap(e)).toList(),
       'reading_time': d.readingTime,
       'feature_autoslide': d.featureAutoSlide,
       'search_box': d.searchBox,
       'date': d.date,
       'terms_of_use': d.termsOfUseUrl,
+      'chat_read_only_hours': d.chatReadOnlyHours,
+      'chat_purge_days': d.chatPurgeDays,
     };
   }
 
@@ -183,7 +202,11 @@ class HomeCategory {
 class AppSettingsSocialInfo {
   final String? fb, youtube, twitter, instagram;
 
-  AppSettingsSocialInfo({required this.fb, required this.youtube, required this.twitter, required this.instagram});
+  AppSettingsSocialInfo(
+      {required this.fb,
+      required this.youtube,
+      required this.twitter,
+      required this.instagram});
 
   factory AppSettingsSocialInfo.fromMap(Map<String, dynamic> d) {
     return AppSettingsSocialInfo(
