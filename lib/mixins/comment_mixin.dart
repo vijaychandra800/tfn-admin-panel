@@ -318,10 +318,16 @@ mixin CommentMixin {
   }
 
   Widget _muteUserButton(BuildContext context, Comment comment, WidgetRef ref) {
+    final bool isMuted =
+        ref.watch(userMutedProvider(comment.commentUser.id)).valueOrNull ??
+            false;
     return PopupMenuButton<String>(
-      tooltip: 'Mute / unmute user',
+      tooltip: isMuted ? 'User is muted — tap to manage' : 'Mute / unmute user',
       position: PopupMenuPosition.under,
-      icon: const Icon(Icons.volume_off_outlined, color: Colors.orange),
+      icon: Icon(
+        isMuted ? Icons.volume_off : Icons.volume_off_outlined,
+        color: isMuted ? Colors.red : Colors.orange,
+      ),
       itemBuilder: (_) => [
         PopupMenuItem<String>(
           enabled: false,

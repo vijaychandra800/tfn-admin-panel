@@ -5,6 +5,8 @@ import 'package:news_admin/models/event.dart';
 import 'package:news_admin/tabs/admin_tabs/comments/comments_selection_provider.dart';
 import 'package:news_admin/tabs/admin_tabs/comments/filter_comments_event.dart';
 import 'package:news_admin/tabs/admin_tabs/comments/filter_comments_target.dart';
+import 'package:news_admin/tabs/admin_tabs/comments/filter_muted_users.dart';
+import 'package:news_admin/tabs/admin_tabs/comments/muted_users_view.dart';
 import 'package:news_admin/tabs/admin_tabs/comments/sort_comments.dart';
 import '../../../configs/constants.dart';
 import '../../../mixins/appbar_mixin.dart';
@@ -61,29 +63,43 @@ class Comments extends ConsumerWidget with CommentMixin, UserMixin {
 
     final selectionMode = ref.watch(commentsSelectionModeProvider);
     final selectedCount = ref.watch(commentsSelectedIdsProvider).length;
+    final mutedView = ref.watch(mutedUsersFilterProvider);
 
     return Container(
       color: Colors.white,
       child: Column(
         children: [
           AppBarMixin.buildTitleBar(context,
-              title: selectionMode ? '$selectedCount selected' : 'All Comments',
+              title: mutedView
+                  ? 'Muted Users'
+                  : (selectionMode
+                      ? '$selectedCount selected'
+                      : 'All Comments'),
               buttons: [
-                if (!selectionMode) ...[
-                  FilterCommentsByTargetButton(ref: ref),
-                  const SizedBox(width: 10),
-                  const FilterCommentsByEventButton(),
-                  const SizedBox(width: 10),
-                  SortCommentsButton(ref: ref),
-                  const SizedBox(width: 10),
+                if (mutedView) ...[
+                  const FilterMutedUsersButton(),
+                ] else ...[
+                  if (!selectionMode) ...[
+                    FilterCommentsByTargetButton(ref: ref),
+                    const SizedBox(width: 10),
+                    const FilterCommentsByEventButton(),
+                    const SizedBox(width: 10),
+                    SortCommentsButton(ref: ref),
+                    const SizedBox(width: 10),
+                    const FilterMutedUsersButton(),
+                    const SizedBox(width: 10),
+                  ],
+                  _selectionToggleButton(context, ref, selectionMode),
                 ],
-                _selectionToggleButton(context, ref, selectionMode),
               ]),
-          buildComments(context,
-              ref: ref,
-              isAuthorArticles: false,
-              selectable: true,
-              queryProvider: commentsQueryprovider),
+          if (mutedView)
+            const MutedUsersView()
+          else
+            buildComments(context,
+                ref: ref,
+                isAuthorArticles: false,
+                selectable: true,
+                queryProvider: commentsQueryprovider),
         ],
       ),
     );

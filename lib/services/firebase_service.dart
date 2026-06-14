@@ -347,6 +347,24 @@ class FirebaseService {
         .set({'muted_until': FieldValue.delete()}, SetOptions(merge: true));
   }
 
+  /// Unmutes multiple users in batched writes (clears `muted_until`).
+  Future unmuteUsersBatch(List<String> userIds) async {
+    if (userIds.isEmpty) return;
+    const int chunkSize = 450;
+    for (int start = 0; start < userIds.length; start += chunkSize) {
+      final end = (start + chunkSize).clamp(0, userIds.length);
+      final batch = firestore.batch();
+      for (final id in userIds.sublist(start, end)) {
+        batch.set(
+          firestore.collection('users').doc(id),
+          {'muted_until': FieldValue.delete()},
+          SetOptions(merge: true),
+        );
+      }
+      await batch.commit();
+    }
+  }
+
   Future saveAuthor(UserModel user) async {
     final data = UserModel.getMap(user);
     await firestore.collection('users').doc(user.id).set(data);
