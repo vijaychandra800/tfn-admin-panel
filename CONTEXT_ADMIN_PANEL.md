@@ -269,6 +269,18 @@ This project uses lightweight Riverpod state rather than a centralized domain la
 - Purge: `functions/index.js` schedules `purgeExpiredEventChats` every 24 hours and deletes event comments once the event has been ended for `chat_purge_days`.
 - Consumer app behavior: `tfn-app/lib/components/event_comments_section.dart` keeps existing comments visible, but freezes the composer, replies, and reactions after the read-only window.
 
+### Comment Engagement Notifications
+
+- Goal: notify the owner of a comment whenever another user replies to it or reacts to it (both article and event/Fanzone comments).
+- Delivery is server-side via Firestore-triggered 2nd-gen Cloud Functions in [functions/index.js](functions/index.js). Clients never send push directly — the recipient's FCM token is read server-side from `users/{uid}.fcmToken` (written by the mobile app on splash via `FirebaseService.saveFCMToken()`).
+- Functions:
+  - `onCommentReply` — `onDocumentCreated('comments/{commentId}')`. Fires only when the new comment has a `reply_to.comment_id`; fetches the parent comment to resolve its owner (`user.id`) and pushes `"{replier} replied to your comment"`.
+  - `onCommentReaction` — `onDocumentUpdated('comments/{commentId}')`. Diffs `reactions` before/after, finds newly-added `(userId, emoji)` pairs, and pushes `"{reactor} reacted {emoji} to your comment"` to the comment owner (`after.user.id`). Reaction removals (toggle-off) never notify.
+- Shared helpers in the same file: `sendCommentNotification(ownerId, title, body, data)` (token lookup + send + prune stale tokens on `messaging/registration-token-not-registered` / `invalid-registration-token`) and `buildCommentTargetData(commentData)` (routing payload).
+- Self-engagement guard: the author is never notified about their own reply/reaction (`ownerId === replierId` / reactor-id check).
+- Payload routing (all-string values): `notification_type: "comment"` plus `type: "event"` + `event_id` for event comments, or `type: "article"` + `article_id` for article comments. Consumed by `tfn-app/lib/models/notification_model.dart` and the app's `NotificationService` routing.
+- Deploy notes: these are the first Eventarc/Firestore 2nd-gen triggers on a project, so the **first** `firebase deploy --only functions` can fail with an Eventarc Service Agent permission-propagation error — simply retry the deploy after a few minutes. Both functions are deployed to **dev** (`track-network-dev`); prod (`the-track-and-field-network`) still needs an explicit deploy.
+
 ### User muting
 
 - Storage: `users.muted_until: Timestamp` on the user doc. Field absent = not muted. Unmute deletes the field via `FieldValue.delete()` rather than setting null, so `where('muted_until', isNull: false)` cleanly lists muted users.

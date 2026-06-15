@@ -1,4 +1,8 @@
 const {onSchedule} = require("firebase-functions/v2/scheduler");
+const {
+  onDocumentCreated,
+  onDocumentUpdated,
+} = require("firebase-functions/v2/firestore");
 const admin = require("firebase-admin");
 const {Timestamp} = require("firebase-admin/firestore"); // Import Timestamp
 
@@ -10,6 +14,7 @@ const eventsCollection = "events";
 const notificationsCollection = "notifications";
 const commentsCollection = "comments";
 const settingsCollection = "settings";
+const usersCollection = "users";
 
 // Defaults for the Fanzone chat lifespan, overridable from settings/app.
 const DEFAULT_CHAT_PURGE_DAYS = 7;
@@ -270,3 +275,182 @@ async function deleteEventComments(eventId) {
   }
   return deleted;
 }
+
+// ---------------------------------------------------------------------------
+// Comment engagement notifications
+//
+// Notify the owner of a comment whenever another user replies to it or reacts
+// to it. Tokens are read from `users/{uid}.fcmToken`. The author is never
+// notified about their own reply/reaction, and stale tokens are pruned.
+// ---------------------------------------------------------------------------
+
+/**
+ * Builds the routing data payload (all-string values) used by the app to open
+ * the right screen when a comment notification is tapped.
+ * @param {Object} commentData The comment document data.
+ * @return {Object} String key/value pairs describing the comment target.
+ */
+function buildCommentTargetData(commentData) {
+  const targetType = commentData.target_type || "article";
+  const targetId = commentData.target_id || commentData.article_id || "";
+  if (targetType === "event") {
+    return {type: "event", event_id: String(targetId)};
+  }
+  return {type: "article", article_id: String(targetId)};
+}
+
+/**
+ * Looks up a user's FCM token and sends a single notification. Silently skips
+ * when the user has no token, and removes the token if FCM reports it as
+ * unregistered.
+ * @param {string} ownerId The recipient user id.
+ * @param {string} title Notification title.
+ * @param {string} body Notification body.
+ * @param {Object} data Extra string key/value routing data.
+ * @return {Promise<void>}
+ */
+async function sendCommentNotification(ownerId, title, body, data) {
+  if (!ownerId) return;
+  let token;
+  try {
+    const userSnap = await db.collection(usersCollection).doc(ownerId).get();
+    token = userSnap.get("fcmToken");
+  } catch (error) {
+    console.error(`Error reading fcmToken for user ${ownerId}:`, error);
+    return;
+  }
+  if (!token) {
+    console.log(`User ${ownerId} has no fcmToken; skipping notification.`);
+    return;
+  }
+
+  const message = {
+    token,
+    notification: {title, body},
+    data: {
+      title,
+      body,
+      notification_type: "comment",
+      ...data,
+    },
+  };
+
+  try {
+    const response = await admin.messaging().send(message);
+    console.log(`Comment notification sent to ${ownerId}:`, response);
+  } catch (error) {
+    console.error(`Error sending comment notification to ${ownerId}:`, error);
+    // Prune tokens FCM no longer recognises so we stop retrying them.
+    if (
+      error.code === "messaging/registration-token-not-registered" ||
+      error.code === "messaging/invalid-registration-token"
+    ) {
+      try {
+        await db
+            .collection(usersCollection)
+            .doc(ownerId)
+            .update({fcmToken: admin.firestore.FieldValue.delete()});
+        console.log(`Removed stale fcmToken for user ${ownerId}.`);
+      } catch (cleanupError) {
+        console.error(
+            `Error removing stale fcmToken for user ${ownerId}:`,
+            cleanupError,
+        );
+      }
+    }
+  }
+}
+
+// Notify the parent comment's owner when someone replies to their comment.
+exports.onCommentReply = onDocumentCreated(
+    `${commentsCollection}/{commentId}`,
+    async (event) => {
+      const snap = event.data;
+      if (!snap) return;
+      const comment = snap.data();
+
+      const replyTo = comment.reply_to;
+      if (!replyTo || !replyTo.comment_id) return; // Not a reply.
+
+      const replier = comment.user || {};
+      const replierId = replier.id;
+
+      // Fetch the parent comment to resolve its owner.
+      let parent;
+      try {
+        const parentSnap = await db
+            .collection(commentsCollection)
+            .doc(replyTo.comment_id)
+            .get();
+        if (!parentSnap.exists) return;
+        parent = parentSnap.data();
+      } catch (error) {
+        console.error(
+            `Error reading parent comment ${replyTo.comment_id}:`,
+            error,
+        );
+        return;
+      }
+
+      const ownerId = (parent.user || {}).id;
+      if (!ownerId || ownerId === replierId) return; // Skip self-replies.
+
+      const replierName = replier.name || "Someone";
+      const title = "New reply";
+      const body = `${replierName} replied to your comment`;
+
+      await sendCommentNotification(
+          ownerId,
+          title,
+          body,
+          buildCommentTargetData(comment),
+      );
+    },
+);
+
+// Notify a comment's owner when another user adds a reaction to it.
+exports.onCommentReaction = onDocumentUpdated(
+    `${commentsCollection}/{commentId}`,
+    async (event) => {
+      const before = event.data.before.data() || {};
+      const after = event.data.after.data() || {};
+
+      const ownerId = (after.user || {}).id;
+      if (!ownerId) return;
+
+      const beforeReactions = before.reactions || {};
+      const afterReactions = after.reactions || {};
+
+      // Collect (userId, emoji) pairs that were newly added in this update.
+      const newlyReacted = [];
+      for (const emoji of Object.keys(afterReactions)) {
+        const beforeUsers = new Set(beforeReactions[emoji] || []);
+        for (const uid of afterReactions[emoji] || []) {
+          if (!beforeUsers.has(uid) && uid !== ownerId) {
+            newlyReacted.push({userId: uid, emoji});
+          }
+        }
+      }
+      if (newlyReacted.length === 0) return;
+
+      const targetData = buildCommentTargetData(after);
+
+      for (const {userId, emoji} of newlyReacted) {
+        let reactorName = "Someone";
+        try {
+          const reactorSnap = await db
+              .collection(usersCollection)
+              .doc(userId)
+              .get();
+          reactorName = reactorSnap.get("name") || reactorName;
+        } catch (error) {
+          console.error(`Error reading reactor ${userId}:`, error);
+        }
+
+        const title = "New reaction";
+        const body = `${reactorName} reacted ${emoji} to your comment`;
+
+        await sendCommentNotification(ownerId, title, body, targetData);
+      }
+    },
+);
