@@ -93,6 +93,16 @@ service cloud.firestore {
       
       allow delete: if isUserSignedIn() && request.auth.uid == resource.id;
     }
+
+    // Per-user Fanzone read tracking. Each doc is keyed by eventId and lives
+    // under users/{userId}/event_chat_reads/{eventId}. The recursive
+    // users/{document=**} rule above can't grant writes here because its
+    // create/update checks compare request.auth.uid to the leaf doc id (the
+    // eventId), not the userId — so an explicit rule scoped to {userId} is
+    // required for the unread-badge mark-as-read write to succeed.
+    match /users/{userId}/event_chat_reads/{eventId} {
+      allow read, write: if isUserSignedIn() && request.auth.uid == userId;
+    }
 		
   
   	function isUserSignedIn (){
