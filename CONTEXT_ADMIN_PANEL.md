@@ -271,11 +271,11 @@ This project uses lightweight Riverpod state rather than a centralized domain la
 
 ### Comment Engagement Notifications
 
-- Goal: notify the owner of a comment whenever another user replies to it or reacts to it (both article and event/Fanzone comments).
+- Goal: notify the owner of an event Fanzone comment whenever another user replies to it or reacts to it. Article comment threads are intentionally excluded — only `target_type === 'event'` comments trigger pushes.
 - Delivery is server-side via Firestore-triggered 2nd-gen Cloud Functions in [functions/index.js](functions/index.js). Clients never send push directly — the recipient's FCM token is read server-side from `users/{uid}.fcmToken` (written by the mobile app on splash via `FirebaseService.saveFCMToken()`).
 - Functions:
-  - `onCommentReply` — `onDocumentCreated('comments/{commentId}')`. Fires only when the new comment has a `reply_to.comment_id`; fetches the parent comment to resolve its owner (`user.id`) and pushes `"{replier} replied to your comment"`.
-  - `onCommentReaction` — `onDocumentUpdated('comments/{commentId}')`. Diffs `reactions` before/after, finds newly-added `(userId, emoji)` pairs, and pushes `"{reactor} reacted {emoji} to your comment"` to the comment owner (`after.user.id`). Reaction removals (toggle-off) never notify.
+  - `onCommentReply` — `onDocumentCreated('comments/{commentId}')`. Fires only when the new comment has a `reply_to.comment_id` **and** `target_type === 'event'`; fetches the parent comment to resolve its owner (`user.id`) and pushes `"{replier} replied to your comment"`.
+  - `onCommentReaction` — `onDocumentUpdated('comments/{commentId}')`. Skips non-event comments, then diffs `reactions` before/after, finds newly-added `(userId, emoji)` pairs, and pushes `"{reactor} reacted {emoji} to your comment"` to the comment owner (`after.user.id`). Reaction removals (toggle-off) never notify.
 - Shared helpers in the same file: `sendCommentNotification(ownerId, title, body, data)` (token lookup + send + prune stale tokens on `messaging/registration-token-not-registered` / `invalid-registration-token`) and `buildCommentTargetData(commentData)` (routing payload).
 - Self-engagement guard: the author is never notified about their own reply/reaction (`ownerId === replierId` / reactor-id check).
 - Payload routing (all-string values): `notification_type: "comment"` plus `type: "event"` + `event_id` for event comments, or `type: "article"` + `article_id` for article comments. Consumed by `tfn-app/lib/models/notification_model.dart` and the app's `NotificationService` routing.
