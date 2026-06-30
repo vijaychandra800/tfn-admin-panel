@@ -462,3 +462,79 @@ exports.onCommentReaction = onDocumentUpdated(
       }
     },
 );
+
+// ---------------------------------------------------------------------------
+// Custom admin notifications
+//
+// The admin panel persists a doc to `notifications/{id}` (title, description as
+// HTML, topic, sent_at) and delivery happens here — clients never send push
+// directly, so no service-account key is exposed in the web bundle. Event
+// notifications also land in this collection but are sent inline by
+// `sendEventNotification` and carry an `event_id`, so they are skipped here to
+// avoid double-sending.
+// ---------------------------------------------------------------------------
+
+/**
+ * Strips HTML tags/entities from a string and collapses whitespace for use as
+ * a plain-text notification body.
+ * @param {string} html The HTML source.
+ * @return {string} Plain text.
+ */
+function htmlToPlainText(html) {
+  if (!html) return "";
+  return String(html)
+      .replace(/<[^>]*>/g, " ")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/\s+/g, " ")
+      .trim();
+}
+
+// Deliver an admin-authored custom notification to its topic when its doc is
+// created in the `notifications` collection.
+exports.onNotificationCreated = onDocumentCreated(
+    `${notificationsCollection}/{notificationId}`,
+    async (event) => {
+      const snap = event.data;
+      if (!snap) return;
+      const data = snap.data() || {};
+
+      // Event notifications are sent inline by sendEventNotification and carry
+      // an event_id; skip them here to avoid a duplicate push.
+      if (data.event_id) return;
+
+      const title = data.title || "";
+      const description = data.description || "";
+      const body = htmlToPlainText(description);
+      const topic = data.topic || "all";
+
+      const message = {
+        notification: {title, body},
+        data: {
+          title,
+          body,
+          click_action: "FLUTTER_NOTIFICATION_CLICK",
+          id: "1",
+          status: "done",
+          notification_type: "custom",
+          description,
+        },
+        topic,
+      };
+
+      try {
+        const response = await admin.messaging().send(message);
+        console.log(
+            `Custom notification ${snap.id} sent to topic "${topic}":`,
+            response,
+        );
+      } catch (error) {
+        console.error(
+            `Error sending custom notification ${snap.id}:`,
+            error,
+        );
+      }
+    },
+);

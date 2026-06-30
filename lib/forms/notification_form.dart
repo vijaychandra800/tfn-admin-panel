@@ -13,7 +13,6 @@ import '../utils/toasts.dart';
 import 'package:rounded_loading_button_plus/rounded_loading_button.dart';
 import '../providers/user_data_provider.dart';
 import '../services/firebase_service.dart';
-import '../services/notification_service.dart';
 
 class NotificationForm extends ConsumerStatefulWidget {
   const NotificationForm({super.key});
@@ -36,15 +35,22 @@ class _NotificationFormState extends ConsumerState<NotificationForm> with TextFi
         final navigator = Navigator.of(context);
         final String description = await controller.getText();
         if (description.isNotEmpty) {
-          // final String description = AppService.getHtmlfromDelta(controller.document.toDelta().toJson());
           _btnCtlr.start();
-          await NotificationService().sendCustomNotificationByTopic(_notificationModel(description));
-          await FirebaseService().saveNotification(_notificationModel(description));
-          _clearFields();
-          _btnCtlr.success();
-          navigator.pop();
-          if (!mounted) return;
-          openSuccessToast(context, 'Notification sent successfully!');
+          try {
+            // Persist the notification; delivery happens server-side via the
+            // `onNotificationCreated` Cloud Function. Clients never send push
+            // directly, so no service-account key is exposed in the web app.
+            await FirebaseService().saveNotification(_notificationModel(description));
+            _clearFields();
+            _btnCtlr.success();
+            navigator.pop();
+            if (!mounted) return;
+            openSuccessToast(context, 'Notification sent successfully!');
+          } catch (e) {
+            _btnCtlr.reset();
+            if (!mounted) return;
+            openFailureToast(context, 'Failed to send notification. Please try again.');
+          }
         } else {
           if (!mounted) return;
           openFailureToast(context, "Description can't be empty");
