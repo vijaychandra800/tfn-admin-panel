@@ -1,10 +1,10 @@
-const { onSchedule } = require("firebase-functions/v2/scheduler");
+const {onSchedule} = require("firebase-functions/v2/scheduler");
 const {
   onDocumentCreated,
   onDocumentUpdated,
 } = require("firebase-functions/v2/firestore");
 const admin = require("firebase-admin");
-const { Timestamp } = require("firebase-admin/firestore"); // Import Timestamp
+const {Timestamp} = require("firebase-admin/firestore"); // Import Timestamp
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -31,16 +31,16 @@ exports.updateEventStatus = onSchedule("every 1 minutes", async () => {
     // Update status to "upcoming" if event is in the future
     try {
       const upcomingEvents = await db
-        .collection(eventsCollection)
-        .where("start_date_time", ">", now)
-        .where("status", "not-in", ["upcoming"])
-        .get();
+          .collection(eventsCollection)
+          .where("start_date_time", ">", now)
+          .where("status", "not-in", ["upcoming"])
+          .get();
 
       console.log(`Found ${upcomingEvents.size} upcoming events.`);
 
       upcomingEvents.forEach((doc) => {
         console.log(`Updating event ${doc.id} to "upcoming"`);
-        batch.update(doc.ref, { status: "upcoming" });
+        batch.update(doc.ref, {status: "upcoming"});
         updateCount++;
       });
     } catch (error) {
@@ -50,17 +50,17 @@ exports.updateEventStatus = onSchedule("every 1 minutes", async () => {
     // Update status to "live" if event is currently happening
     try {
       const liveEvents = await db
-        .collection(eventsCollection)
-        .where("start_date_time", "<=", now)
-        .where("end_date_time", ">", now)
-        .where("status", "not-in", ["live"])
-        .get();
+          .collection(eventsCollection)
+          .where("start_date_time", "<=", now)
+          .where("end_date_time", ">", now)
+          .where("status", "not-in", ["live"])
+          .get();
 
       console.log(`Found ${liveEvents.size} live events.`);
 
       liveEvents.forEach((doc) => {
         console.log(`Updating event ${doc.id} to "live"`);
-        batch.update(doc.ref, { status: "live" });
+        batch.update(doc.ref, {status: "live"});
         updateCount++;
       });
     } catch (error) {
@@ -70,16 +70,16 @@ exports.updateEventStatus = onSchedule("every 1 minutes", async () => {
     // Update status to "covered" if event has ended
     try {
       const coveredEvents = await db
-        .collection(eventsCollection)
-        .where("end_date_time", "<=", now)
-        .where("status", "not-in", ["covered"])
-        .get();
+          .collection(eventsCollection)
+          .where("end_date_time", "<=", now)
+          .where("status", "not-in", ["covered"])
+          .get();
 
       console.log(`Found ${coveredEvents.size} covered events.`);
 
       coveredEvents.forEach((doc) => {
         console.log(`Updating event ${doc.id} to "covered"`);
-        batch.update(doc.ref, { status: "covered" });
+        batch.update(doc.ref, {status: "covered"});
         updateCount++;
       });
     } catch (error) {
@@ -104,16 +104,16 @@ exports.sendEventNotification = onSchedule("every 5 minutes", async () => {
   try {
     const now = Timestamp.now();
     const notifyTime = Timestamp.fromDate(
-      new Date(Date.now() + 30 * 60 * 1000),
+        new Date(Date.now() + 30 * 60 * 1000),
     );
 
     // Fetch events starting in the next 30 minutes
     const upcomingEvents = await db
-      .collection(eventsCollection)
-      .where("start_date_time", ">=", now)
-      .where("start_date_time", "<=", notifyTime)
-      .orderBy("start_date_time")
-      .get();
+        .collection(eventsCollection)
+        .where("start_date_time", ">=", now)
+        .where("start_date_time", "<=", notifyTime)
+        .orderBy("start_date_time")
+        .get();
 
     if (upcomingEvents.empty) {
       console.log("No new events requiring notification.");
@@ -124,17 +124,17 @@ exports.sendEventNotification = onSchedule("every 5 minutes", async () => {
 
     // Fetch notifications already sent from the notifications table
     const notificationsSnapshot = await db
-      .collection(notificationsCollection)
-      .get();
+        .collection(notificationsCollection)
+        .get();
     const notifiedEventIds = notificationsSnapshot.docs.map(
-      (doc) => doc.data().event_id,
+        (doc) => doc.data().event_id,
     );
 
     console.log(`Already notified events:`, notifiedEventIds);
 
     // Filter out events that have already been notified
     const eventsToNotify = upcomingEvents.docs.filter(
-      (eventDoc) => !notifiedEventIds.includes(eventDoc.id),
+        (eventDoc) => !notifiedEventIds.includes(eventDoc.id),
     );
 
     if (eventsToNotify.length === 0) {
@@ -180,12 +180,12 @@ exports.sendEventNotification = onSchedule("every 5 minutes", async () => {
         await db.collection(notificationsCollection).add(notificationData);
 
         console.log(
-          `Notification saved in FireStore for event: ${eventData.title}`,
+            `Notification saved in FireStore for event: ${eventData.title}`,
         );
       } catch (error) {
         console.error(
-          `Error sending notification for event ${eventData.title}:`,
-          error,
+            `Error sending notification for event ${eventData.title}:`,
+            error,
         );
       }
     }
@@ -207,9 +207,9 @@ exports.purgeExpiredEventChats = onSchedule("every 24 hours", async () => {
     let purgeDays = DEFAULT_CHAT_PURGE_DAYS;
     try {
       const settingsSnap = await db
-        .collection(settingsCollection)
-        .doc("app")
-        .get();
+          .collection(settingsCollection)
+          .doc("app")
+          .get();
       const configured = settingsSnap.get("chat_purge_days");
       if (typeof configured === "number" && configured > 0) {
         purgeDays = configured;
@@ -220,14 +220,14 @@ exports.purgeExpiredEventChats = onSchedule("every 24 hours", async () => {
 
     const cutoff = Timestamp.fromMillis(Date.now() - purgeDays * MS_PER_DAY);
     console.log(
-      `Purging event chats ended before ${cutoff.toDate()} ` +
+        `Purging event chats ended before ${cutoff.toDate()} ` +
         `(purge window: ${purgeDays} days).`,
     );
 
     const endedEvents = await db
-      .collection(eventsCollection)
-      .where("end_date_time", "<=", cutoff)
-      .get();
+        .collection(eventsCollection)
+        .where("end_date_time", "<=", cutoff)
+        .get();
 
     if (endedEvents.empty) {
       console.log("No expired event chats to purge.");
@@ -240,7 +240,7 @@ exports.purgeExpiredEventChats = onSchedule("every 24 hours", async () => {
     }
 
     console.log(
-      `Purged ${totalDeleted} comments across ` +
+        `Purged ${totalDeleted} comments across ` +
         `${endedEvents.size} expired events.`,
     );
   } catch (error) {
@@ -258,11 +258,11 @@ async function deleteEventComments(eventId) {
   // Loop until no more matching comments remain.
   for (;;) {
     const snap = await db
-      .collection(commentsCollection)
-      .where("target_type", "==", "event")
-      .where("target_id", "==", eventId)
-      .limit(450)
-      .get();
+        .collection(commentsCollection)
+        .where("target_type", "==", "event")
+        .where("target_id", "==", eventId)
+        .limit(450)
+        .get();
 
     if (snap.empty) break;
 
@@ -294,9 +294,9 @@ function buildCommentTargetData(commentData) {
   const targetType = commentData.target_type || "article";
   const targetId = commentData.target_id || commentData.article_id || "";
   if (targetType === "event") {
-    return { type: "event", event_id: String(targetId) };
+    return {type: "event", event_id: String(targetId)};
   }
-  return { type: "article", article_id: String(targetId) };
+  return {type: "article", article_id: String(targetId)};
 }
 
 /**
@@ -326,7 +326,7 @@ async function sendCommentNotification(ownerId, title, body, data) {
 
   const message = {
     token,
-    notification: { title, body },
+    notification: {title, body},
     data: {
       title,
       body,
@@ -347,14 +347,14 @@ async function sendCommentNotification(ownerId, title, body, data) {
     ) {
       try {
         await db
-          .collection(usersCollection)
-          .doc(ownerId)
-          .update({ fcmToken: admin.firestore.FieldValue.delete() });
+            .collection(usersCollection)
+            .doc(ownerId)
+            .update({fcmToken: admin.firestore.FieldValue.delete()});
         console.log(`Removed stale fcmToken for user ${ownerId}.`);
       } catch (cleanupError) {
         console.error(
-          `Error removing stale fcmToken for user ${ownerId}:`,
-          cleanupError,
+            `Error removing stale fcmToken for user ${ownerId}:`,
+            cleanupError,
         );
       }
     }
@@ -363,102 +363,102 @@ async function sendCommentNotification(ownerId, title, body, data) {
 
 // Notify the parent comment's owner when someone replies to their comment.
 exports.onCommentReply = onDocumentCreated(
-  `${commentsCollection}/{commentId}`,
-  async (event) => {
-    const snap = event.data;
-    if (!snap) return;
-    const comment = snap.data();
+    `${commentsCollection}/{commentId}`,
+    async (event) => {
+      const snap = event.data;
+      if (!snap) return;
+      const comment = snap.data();
 
-    const replyTo = comment.reply_to;
-    if (!replyTo || !replyTo.comment_id) return; // Not a reply.
+      const replyTo = comment.reply_to;
+      if (!replyTo || !replyTo.comment_id) return; // Not a reply.
 
-    // Engagement notifications are scoped to the event Fanzone only —
-    // replies on article comment threads never push.
-    if (comment.target_type !== "event") return;
+      // Engagement notifications are scoped to the event Fanzone only —
+      // replies on article comment threads never push.
+      if (comment.target_type !== "event") return;
 
-    const replier = comment.user || {};
-    const replierId = replier.id;
+      const replier = comment.user || {};
+      const replierId = replier.id;
 
-    // Fetch the parent comment to resolve its owner.
-    let parent;
-    try {
-      const parentSnap = await db
-        .collection(commentsCollection)
-        .doc(replyTo.comment_id)
-        .get();
-      if (!parentSnap.exists) return;
-      parent = parentSnap.data();
-    } catch (error) {
-      console.error(
-        `Error reading parent comment ${replyTo.comment_id}:`,
-        error,
+      // Fetch the parent comment to resolve its owner.
+      let parent;
+      try {
+        const parentSnap = await db
+            .collection(commentsCollection)
+            .doc(replyTo.comment_id)
+            .get();
+        if (!parentSnap.exists) return;
+        parent = parentSnap.data();
+      } catch (error) {
+        console.error(
+            `Error reading parent comment ${replyTo.comment_id}:`,
+            error,
+        );
+        return;
+      }
+
+      const ownerId = (parent.user || {}).id;
+      if (!ownerId || ownerId === replierId) return; // Skip self-replies.
+
+      const replierName = replier.name || "Someone";
+      const title = "New reply";
+      const body = `${replierName} replied to your message`;
+
+      await sendCommentNotification(
+          ownerId,
+          title,
+          body,
+          buildCommentTargetData(comment),
       );
-      return;
-    }
-
-    const ownerId = (parent.user || {}).id;
-    if (!ownerId || ownerId === replierId) return; // Skip self-replies.
-
-    const replierName = replier.name || "Someone";
-    const title = "New reply";
-    const body = `${replierName} replied to your message`;
-
-    await sendCommentNotification(
-      ownerId,
-      title,
-      body,
-      buildCommentTargetData(comment),
-    );
-  },
+    },
 );
 
 // Notify a comment's owner when another user adds a reaction to it.
 exports.onCommentReaction = onDocumentUpdated(
-  `${commentsCollection}/{commentId}`,
-  async (event) => {
-    const before = event.data.before.data() || {};
-    const after = event.data.after.data() || {};
+    `${commentsCollection}/{commentId}`,
+    async (event) => {
+      const before = event.data.before.data() || {};
+      const after = event.data.after.data() || {};
 
-    // Engagement notifications are scoped to the event Fanzone only —
-    // reactions on article comment threads never push.
-    if (after.target_type !== "event") return;
+      // Engagement notifications are scoped to the event Fanzone only —
+      // reactions on article comment threads never push.
+      if (after.target_type !== "event") return;
 
-    const ownerId = (after.user || {}).id;
-    if (!ownerId) return;
+      const ownerId = (after.user || {}).id;
+      if (!ownerId) return;
 
-    const beforeReactions = before.reactions || {};
-    const afterReactions = after.reactions || {};
+      const beforeReactions = before.reactions || {};
+      const afterReactions = after.reactions || {};
 
-    // Collect (userId, emoji) pairs that were newly added in this update.
-    const newlyReacted = [];
-    for (const emoji of Object.keys(afterReactions)) {
-      const beforeUsers = new Set(beforeReactions[emoji] || []);
-      for (const uid of afterReactions[emoji] || []) {
-        if (!beforeUsers.has(uid) && uid !== ownerId) {
-          newlyReacted.push({ userId: uid, emoji });
+      // Collect (userId, emoji) pairs that were newly added in this update.
+      const newlyReacted = [];
+      for (const emoji of Object.keys(afterReactions)) {
+        const beforeUsers = new Set(beforeReactions[emoji] || []);
+        for (const uid of afterReactions[emoji] || []) {
+          if (!beforeUsers.has(uid) && uid !== ownerId) {
+            newlyReacted.push({userId: uid, emoji});
+          }
         }
       }
-    }
-    if (newlyReacted.length === 0) return;
+      if (newlyReacted.length === 0) return;
 
-    const targetData = buildCommentTargetData(after);
+      const targetData = buildCommentTargetData(after);
 
-    for (const { userId, emoji } of newlyReacted) {
-      let reactorName = "Someone";
-      try {
-        const reactorSnap = await db
-          .collection(usersCollection)
-          .doc(userId)
-          .get();
-        reactorName = reactorSnap.get("name") || reactorName;
-      } catch (error) {
-        console.error(`Error reading reactor ${userId}:`, error);
+      for (const {userId, emoji} of newlyReacted) {
+        let reactorName = "Someone";
+        try {
+          const reactorSnap = await db
+              .collection(usersCollection)
+              .doc(userId)
+              .get();
+          reactorName = reactorSnap.get("name") || reactorName;
+        } catch (error) {
+          console.error(`Error reading reactor ${userId}:`, error);
+        }
+
+        const title = "New reaction";
+        const body = `${reactorName} reacted ${emoji} to your message`;
+
+        await sendCommentNotification(ownerId, title, body, targetData);
       }
-
-      const title = "New reaction";
-      const body = `${reactorName} reacted ${emoji} to your message`;
-
-      await sendCommentNotification(ownerId, title, body, targetData);
-    }
-  },
+    },
 );

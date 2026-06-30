@@ -256,7 +256,7 @@ This project uses lightweight Riverpod state rather than a centralized domain la
 - Firestore shape:
   - Flat `comments` collection. Each doc carries `target_type` (`'article'` | `'event'`), `target_id`, `target_title`.
   - For article comments, legacy `article_id`, `article_title`, `article_author_id` are still written so the existing composite index `(article_id asc, created_at desc)` and the author-articles query keep working without backfill.
-  - New composite indexes (deployed via `firestore.indexes.json`): `(target_type asc, created_at desc)` and `(target_type asc, target_id asc, created_at desc)`.
+  - New composite indexes (deployed via `firestore.indexes.json`): `(target_type asc, created_at desc)`, `(target_type asc, target_id asc, created_at desc)`, and `(target_id asc, target_type asc, created_at asc)`.
 - Behavior:
   - Admins can moderate globally across both article and event comments, filter by target, and mute/unmute users from any row.
   - Authors retain access to comments tied to their own articles (legacy `article_author_id` mirror is what powers that query).
