@@ -4,6 +4,14 @@
 
 This project is the Flutter web admin surface for Track Field Network. It is used by admins and authors to manage content, users, notifications, purchases, ads, and app settings stored in Firebase.
 
+## Roadmap / Feature Plans
+
+- **Social features (Profiles + Follow, User-generated Posts, Messaging MVP):** the full
+  cross-project implementation plan lives in [SOCIAL_FEATURES_PLAN.md](SOCIAL_FEATURES_PLAN.md)
+  in this directory. To work on any of these features in a new chat, attach this file,
+  [../tfn-app/CONTEXT_ANDROID_APP.md](../tfn-app/CONTEXT_ANDROID_APP.md), and that plan, then ask
+  for a specific phase (e.g. "Implement Phase 3 (Follow graph) on dev").
+
 ## Stack Summary
 
 - Flutter with Riverpod for state management.
