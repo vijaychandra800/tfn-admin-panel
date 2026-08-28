@@ -1,0 +1,19 @@
+firestore.indexes.json
+  s_ce992cd0e47cae::t_9ea3b90fe0abd0 278-313
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "70611dbbe1a44d3c9050be9d85632c719b08c7c3",
+  "prompts": {},
+  "sessions": {
+    "s_ce992cd0e47cae": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "f14a5f85-ac13-4365-b90e-0d55355744f2",
+        "model": "copilot/claude-opus-5"
+      },
+      "human_author": "vijaychandra800 <vijaychandra800@gmail.com>"
+    }
+  }
+}
