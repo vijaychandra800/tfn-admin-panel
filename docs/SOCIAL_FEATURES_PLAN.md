@@ -11,6 +11,16 @@
 > _"Implement Phase 3 (Follow graph) from SOCIAL_FEATURES_PLAN.md on dev."_
 >
 > **Status legend:** ☐ not started · ◐ in progress · ☑ done. Update the checkboxes as phases land.
+>
+> **This plan is the roadmap, not the spec.** As each phase starts it is converted into an
+> OpenSpec change — `openspec/changes/<id>/` in **both** repos, same id in each. Once a phase
+> has a change folder, that folder wins on any detail the two disagree about, and this file
+> keeps only the phase summary and its status. After a change is archived, its requirements
+> live in `openspec/specs/`, which is what keeps the specs from drifting away from the code.
+>
+> | Phase | Change id | Status |
+> | --- | --- | --- |
+> | 1 | `add-profile-foundation` | specced in both repos |
 
 ---
 
@@ -20,7 +30,7 @@
 
 | Phase | Scope                                                                                                                                                                  | Status |
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 1     | Profile foundation — `UserModel` fields, `UserRef`, edit-profile (bio/cover/links), `user_covers/` storage, backfill (counters=0, auto-handles), reserve `mentions:[]` | ☐      |
+| 1     | Profile foundation — `UserModel` fields, `UserRef`, edit-profile (bio/cover/links), `user_covers/` storage, backfill (counters=0, auto-handles), reserve `mentions:[]` | ◐ specced: `add-profile-foundation` |
 | 2     | Handle system — `usernames/` collection, reservation transaction, rules, validation                                                                                    | ☐      |
 | 3     | Follow graph — `follows` collection, rules, indexes, service/providers, `FollowButton`, counter functions                                                              | ☐      |
 | 4     | Profile UI — public profile screen, followers/following lists, tap-through wiring                                                                                      | ☐      |
@@ -287,9 +297,12 @@ allow update: if isUserSignedIn()
 
 Each phase is independently shippable to dev.
 
-- ☐ **Phase 1 — Profile foundation:** `UserModel` fields, `UserRef`, edit-profile (bio/cover/links),
+- ◐ **Phase 1 — Profile foundation:** `UserModel` fields, `UserRef`, edit-profile (bio/cover/links),
   `user_covers/` storage path, backfill script (init counters = 0, generate handles). Reserve
   `mentions: []` in write paths.
+  **Specced as `add-profile-foundation`** — see `openspec/changes/add-profile-foundation/`
+  in this repo (schema, rules, storage, backfill, admin UI) and in `../tfn-app`
+  (models, edit-profile UI). Those artifacts supersede this summary.
 - ☐ **Phase 2 — Handle system:** `usernames/` collection, reservation transaction, rules, validation.
 - ☐ **Phase 3 — Follow graph:** `follows` collection, rules, indexes, service + providers,
   `FollowButton`, `onFollowCreate` / `onFollowDelete` counters.
