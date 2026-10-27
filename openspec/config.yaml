@@ -1,0 +1,67 @@
+schema: spec-driven
+githubCopilot:
+  cloudAgent: false
+
+context: |
+  Always-on repo rules live in AGENTS.md at the repo root. Read it before proposing.
+
+  This repo is the Flutter web admin panel AND the owner of the Firebase backend
+  (firestore.rules, firestore.indexes.json, storage.rules, functions/) shared with the
+  sibling mobile repo ../tfn-app. Treat any backend change as a breaking change for that
+  repo and say so explicitly in the proposal.
+
+  Cross-repo changes: a feature usually spans both repos. Use the SAME change id in
+  ../tfn-app/openspec/changes/ and cross-reference them in both proposals, because the
+  two repos have separate git histories and nothing else links them.
+
+  Environment: every change targets the dev Firebase project track-network-dev. Prod
+  (the-track-and-field-network) is only touched when the user explicitly says "prod".
+  firebase deploy must always carry an explicit --project flag.
+
+  Server-authoritative invariants that specs must respect: denormalized counters and FCM
+  pushes are written only by Cloud Functions, never by a client, and firestore.rules must
+  reject client writes to those fields. Firestore schema changes are additive only —
+  rename by mirroring the legacy field and falling back on read, so no backfill is needed.
+
+rules:
+  proposal:
+    - State whether the change touches the shared Firebase backend, and if so what breaks in ../tfn-app.
+    - Name the sibling change id in ../tfn-app when the feature spans both repos, or state that it is admin-only.
+  design:
+    - Specify new Firestore collections, document id shape, and every composite index the queries need.
+    - Call out which fields are server-owned (Cloud Function written) versus client-writable.
+  tasks:
+    - Reference exact file paths, and prefix each task with the repo it lands in.
+    - Keep rules, indexes, and Cloud Functions as tasks separate from UI work; they deploy independently.
+    - Include a task to deploy to track-network-dev and verify there before the change is done.
+
+# Project context (optional)
+# Add only constraints that should guide OpenSpec artifacts and workflows.
+# Include constraints an agent cannot infer by reading the code.
+# Keep general project documentation and discoverable codebase facts out.
+# Example:
+#   context: |
+#     Designs and tasks must cover Windows, macOS, and Linux
+#     Write all artifacts in Spanish
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always state what is out of scope
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing

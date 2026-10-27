@@ -86,6 +86,22 @@ firebase projects:list
   means: new key in `settings/app` → `AppSettingsModel` in **both** repos →
   `app_setting_providers.dart` hydration → `app_settings_view.dart` persistence.
 
+## Spec-driven workflow (OpenSpec)
+
+Non-trivial work is specced before code is written.
+
+- `openspec/specs/` is what is true **now**. `openspec/changes/<id>/` is what a change
+  **proposes** (proposal.md, design.md, spec deltas, tasks.md). Archiving a change folds
+  its delta into `specs/`, which is what stops the specs drifting from the code.
+- Slash command spelling varies by tool: `/opsx-propose` (Copilot, Cursor),
+  `/opsx:propose` (Claude Code), `/openspec-propose` (generic). Same for `apply` / `archive`.
+- CLI: `openspec list`, `openspec show <id>`, `openspec validate`, `openspec archive <id>`.
+  Validate before applying.
+- **Cross-repo features use the same change id in both repos** and reference each other in
+  their proposals. The two repos have separate git histories — nothing else links them.
+- Constraints that shape proposals, designs, and tasks live in `openspec/config.yaml`.
+  All backend work (rules, indexes, Cloud Functions) belongs to the change in **this** repo.
+
 ## Scoped rules
 
 Additional rules apply to specific paths. Copilot/VS Code loads these automatically via
