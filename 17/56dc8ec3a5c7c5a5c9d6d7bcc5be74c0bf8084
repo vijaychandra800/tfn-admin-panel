@@ -1,0 +1,33 @@
+.github/instructions/cloud-functions.instructions.md
+  s_c0ef2d331b359e::t_254c7572039569 1-59
+.github/instructions/firebase-backend.instructions.md
+  s_c0ef2d331b359e::t_566ff887d450b2 1-57
+.github/prompts/deploy-dev.prompt.md
+  s_c0ef2d331b359e::t_98d43f5b79e144 1-75
+CONTEXT_ADMIN_PANEL.md
+  s_c0ef2d331b359e::t_4126b9e3876fb9 7-11
+CLAUDE.md
+  s_c0ef2d331b359e::t_5a6ee6eb4600db 1-10
+.github/instructions/dart-models.instructions.md
+  s_c0ef2d331b359e::t_9fd553a6a6024f 1-58
+AGENTS.md
+  s_c0ef2d331b359e::t_b3b0336de4b558 1-111
+.github/copilot-instructions.md
+  s_c0ef2d331b359e::t_d1e222c1c64d2a 1-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1756dc8ec3a5c7c5a5c9d6d7bcc5be74c0bf8084",
+  "prompts": {},
+  "sessions": {
+    "s_c0ef2d331b359e": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "340e049b-236d-4825-87ee-4145ede48813",
+        "model": "copilot/claude-opus-5"
+      },
+      "human_author": "vijaychandra800 <vijaychandra800@gmail.com>"
+    }
+  }
+}
