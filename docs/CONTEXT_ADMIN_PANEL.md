@@ -5,7 +5,7 @@
 This project is the Flutter web admin surface for Track Field Network. It is used by admins and authors to manage content, users, notifications, purchases, ads, and app settings stored in Firebase.
 
 > **This file is reference, not rules.** Enforceable agent rules live in
-> [AGENTS.md](AGENTS.md) at the repo root and are loaded automatically by AI tools.
+> [AGENTS.md](../AGENTS.md) at the repo root and are loaded automatically by AI tools.
 > Path-scoped rules live in `.github/instructions/`. Use this document for architecture
 > and "where do I change X" lookups; put anything an agent must *always* obey in AGENTS.md.
 
@@ -14,7 +14,7 @@ This project is the Flutter web admin surface for Track Field Network. It is use
 - **Social features (Profiles + Follow, User-generated Posts, Messaging MVP):** the full
   cross-project implementation plan lives in [SOCIAL_FEATURES_PLAN.md](SOCIAL_FEATURES_PLAN.md)
   in this directory. To work on any of these features in a new chat, attach this file,
-  [../tfn-app/CONTEXT_ANDROID_APP.md](../tfn-app/CONTEXT_ANDROID_APP.md), and that plan, then ask
+  [../../tfn-app/docs/CONTEXT_ANDROID_APP.md](../../tfn-app/docs/CONTEXT_ANDROID_APP.md), and that plan, then ask
   for a specific phase (e.g. "Implement Phase 3 (Follow graph) on dev").
 
 ## Stack Summary
@@ -30,13 +30,13 @@ This project is the Flutter web admin surface for Track Field Network. It is use
 
 | Env  | Firebase Project ID           | Web App ID                                  | Options file                                                   |
 | ---- | ----------------------------- | ------------------------------------------- | -------------------------------------------------------------- |
-| Dev  | `track-network-dev`           | `1:199255076107:web:47e54cd5b3cc20ebbb460e` | [lib/firebase_options_dev.dart](lib/firebase_options_dev.dart) |
-| Prod | `the-track-and-field-network` | `1:291089351662:web:8f9e830e536532803904ff` | [lib/firebase_options.dart](lib/firebase_options.dart)         |
+| Dev  | `track-network-dev`           | `1:199255076107:web:47e54cd5b3cc20ebbb460e` | [../lib/firebase_options_dev.dart](../lib/firebase_options_dev.dart) |
+| Prod | `the-track-and-field-network` | `1:291089351662:web:8f9e830e536532803904ff` | [../lib/firebase_options.dart](../lib/firebase_options.dart)         |
 
 ### Flavor wiring
 
-- [lib/main.dart](lib/main.dart) reads `const _flavor = String.fromEnvironment('FLAVOR', defaultValue: 'prod')` and picks `dev_options.DefaultFirebaseOptions.currentPlatform` vs `prod_options.DefaultFirebaseOptions.currentPlatform`. Both options files are imported with aliases.
-- [firebase.json](firebase.json) registers both options files under `flutter.platforms.dart` and includes top-level `firestore` (`firestore.rules` + `firestore.indexes.json`) and `storage` (`storage.rules`) sections used by `firebase deploy`.
+- [../lib/main.dart](../lib/main.dart) reads `const _flavor = String.fromEnvironment('FLAVOR', defaultValue: 'prod')` and picks `dev_options.DefaultFirebaseOptions.currentPlatform` vs `prod_options.DefaultFirebaseOptions.currentPlatform`. Both options files are imported with aliases.
+- [../firebase.json](../firebase.json) registers both options files under `flutter.platforms.dart` and includes top-level `firestore` (`firestore.rules` + `firestore.indexes.json`) and `storage` (`storage.rules`) sections used by `firebase deploy`.
 
 ### Run / deploy commands
 
@@ -52,7 +52,7 @@ flutter build web   --dart-define=FLAVOR=prod
 firebase deploy --project=the-track-and-field-network
 ```
 
-See [../DEV_ENVIRONMENT.md](../DEV_ENVIRONMENT.md) at the workspace root for the full clone manifest and manual console checklist.
+See [../../DEV_ENVIRONMENT.md](../../DEV_ENVIRONMENT.md) at the workspace root for the full clone manifest and manual console checklist.
 
 ## Startup And App Boot Flow
 
@@ -285,7 +285,7 @@ This project uses lightweight Riverpod state rather than a centralized domain la
 ### Comment Engagement Notifications
 
 - Goal: notify the owner of an event Fanzone comment whenever another user replies to it or reacts to it. Article comment threads are intentionally excluded — only `target_type === 'event'` comments trigger pushes.
-- Delivery is server-side via Firestore-triggered 2nd-gen Cloud Functions in [functions/index.js](functions/index.js). Clients never send push directly — the recipient's FCM token is read server-side from `users/{uid}.fcmToken` (written by the mobile app on splash via `FirebaseService.saveFCMToken()`).
+- Delivery is server-side via Firestore-triggered 2nd-gen Cloud Functions in [../functions/index.js](../functions/index.js). Clients never send push directly — the recipient's FCM token is read server-side from `users/{uid}.fcmToken` (written by the mobile app on splash via `FirebaseService.saveFCMToken()`).
 - Functions:
   - `onCommentReply` — `onDocumentCreated('comments/{commentId}')`. Fires only when the new comment has a `reply_to.comment_id` **and** `target_type === 'event'`; fetches the parent comment to resolve its owner (`user.id`) and pushes `"{replier} replied to your comment"`.
   - `onCommentReaction` — `onDocumentUpdated('comments/{commentId}')`. Skips non-event comments, then diffs `reactions` before/after, finds newly-added `(userId, emoji)` pairs, and pushes `"{reactor} reacted {emoji} to your comment"` to the comment owner (`after.user.id`). Reaction removals (toggle-off) never notify.
@@ -298,9 +298,9 @@ This project uses lightweight Riverpod state rather than a centralized domain la
 
 - Storage: `users.muted_until: Timestamp` on the user doc. Field absent = not muted. Unmute deletes the field via `FieldValue.delete()` rather than setting null, so `where('muted_until', isNull: false)` cleanly lists muted users.
 - Service: `FirebaseService.muteUser(userId, DateTime until)` (merge) and `FirebaseService.unmuteUser(userId)`.
-- UI entry points: per-row overflow menu in [lib/mixins/comment_mixin.dart](lib/mixins/comment_mixin.dart); a new "Muted Users" option in [lib/tabs/admin_tabs/users/sort_users_button.dart](lib/tabs/admin_tabs/users/sort_users_button.dart) and the `'muted'` entry in `sortByUsers` in [lib/configs/constants.dart](lib/configs/constants.dart).
-- Enforcement: [firestore.rules](firestore.rules) — `isMuted()` reads the user doc, returns true when `'muted_until' in userDoc && userDoc.muted_until > request.time`. Comments `create` requires `!isMuted()`; `update` / `delete` remain open to signed-in users.
-- Mobile app side: [tfn-app/lib/models/user_model.dart](../tfn-app/lib/models/user_model.dart) parses `muted_until` into `mutedUntil` and both `Comments` and `EventCommentsSection` check it before posting.
+- UI entry points: per-row overflow menu in [../lib/mixins/comment_mixin.dart](../lib/mixins/comment_mixin.dart); a new "Muted Users" option in [../lib/tabs/admin_tabs/users/sort_users_button.dart](../lib/tabs/admin_tabs/users/sort_users_button.dart) and the `'muted'` entry in `sortByUsers` in [../lib/configs/constants.dart](../lib/configs/constants.dart).
+- Enforcement: [../firestore.rules](../firestore.rules) — `isMuted()` reads the user doc, returns true when `'muted_until' in userDoc && userDoc.muted_until > request.time`. Comments `create` requires `!isMuted()`; `update` / `delete` remain open to signed-in users.
+- Mobile app side: [tfn-app/lib/models/user_model.dart](../../tfn-app/lib/models/user_model.dart) parses `muted_until` into `mutedUntil` and both `Comments` and `EventCommentsSection` check it before posting.
 - No automated expiry yet — muted users become un-muted by an admin clicking Unmute, or simply by the `request.time > muted_until` check passing once the timer elapses (the field stays on the doc, but rule allows writes again).
 
 ### Users And Authors

@@ -3,7 +3,7 @@
 > **Purpose of this file.** This is the canonical, cross-project implementation plan for the
 > social layer of Track Field Network: **(1) Profiles + Follow**, **(2) User-generated Posts
 > with image/video**, **(3) Messaging MVP**. It is written so that a fresh chat can be handed
-> the three context files — [../tfn-app/CONTEXT_ANDROID_APP.md](../tfn-app/CONTEXT_ANDROID_APP.md),
+> the three context files — [../../tfn-app/docs/CONTEXT_ANDROID_APP.md](../../tfn-app/docs/CONTEXT_ANDROID_APP.md),
 > [CONTEXT_ADMIN_PANEL.md](CONTEXT_ADMIN_PANEL.md), and **this file** —
 > and immediately implement any named phase without re-discovering the design.
 >
@@ -59,7 +59,7 @@
 - **State.** Riverpod, one small provider per concern.
 - **Server-authoritative counters & notifications.** Counters (`followers_count`, etc.) and
   push notifications are written/sent **only** by 2nd-gen Cloud Functions in
-  [functions/index.js](functions/index.js), reusing the existing
+  [../functions/index.js](../functions/index.js), reusing the existing
   `sendCommentNotification`-style token lookup + stale-token pruning helper.
 - **Package namespaces stay legacy:** app = `news_app`, admin = `news_admin`.
 - **First 2nd-gen trigger deploy** may fail with the Eventarc Service Agent permission
@@ -108,7 +108,7 @@ Single choke point consulted by follow-create now, and by posts feeds + DM gatin
 Extract `sendUserNotification(uid, title, body, data)` from the existing
 `sendCommentNotification` so follow / mention / post-like / message pushes share one tested,
 token-pruning code path. Routing payload stays all-string values, consumed by
-[../tfn-app/lib/models/notification_model.dart](../tfn-app/lib/models/notification_model.dart) and the app `NotificationService`.
+[../../tfn-app/lib/models/notification_model.dart](../../tfn-app/lib/models/notification_model.dart) and the app `NotificationService`.
 
 New routing types to add:
 | notification_type | extra keys | opens |
@@ -243,11 +243,11 @@ allow update: if isUserSignedIn()
 
 - ☐ `user_ref.dart` — `UserRef`.
 - ☐ `follow_edge.dart` — `FollowEdge`.
-- ☐ Extend `UserModel` ([../tfn-app/lib/models/user_model.dart](../tfn-app/lib/models/user_model.dart)) with
+- ☐ Extend `UserModel` ([../../tfn-app/lib/models/user_model.dart](../../tfn-app/lib/models/user_model.dart)) with
   `username`, `bio`, `coverUrl`, `links`, `isPrivate`, `followersCount`, `followingCount`,
   `postsCount` (+ `mentions` placeholder where write paths gain it).
 
-**Service** (`FirebaseService`, [../tfn-app/lib/services/firebase_service.dart](../tfn-app/lib/services/firebase_service.dart))
+**Service** (`FirebaseService`, [../../tfn-app/lib/services/firebase_service.dart](../../tfn-app/lib/services/firebase_service.dart))
 
 - ☐ `followUser(UserRef me, UserRef target)` — writes `follows/{me}_{target}`, idempotent.
 - ☐ `unfollowUser(meId, targetId)`.
@@ -269,7 +269,7 @@ allow update: if isUserSignedIn()
   a stubbed "Posts" tab (empty state now → filled by Feature 2).
 - ☐ `screens/profile/followers_list_screen.dart` — shared followers/following list with per-row `FollowButton`.
 - ☐ `components/follow_button.dart` — watches `followStatusProvider`, optimistic toggle.
-- ☐ Enhance `EditProfile` (opened from [../tfn-app/lib/screens/tabs/profile_tab/user_info.dart](../tfn-app/lib/screens/tabs/profile_tab/user_info.dart))
+- ☐ Enhance `EditProfile` (opened from [../../tfn-app/lib/screens/tabs/profile_tab/user_info.dart](../../tfn-app/lib/screens/tabs/profile_tab/user_info.dart))
   with username, bio, cover, links.
 - ☐ **Entry points:** make comment avatars/names (`CommentTile`), author info, and event-chat
   rows tap through to `public_profile_screen`. (Same navigation posts/DMs will reuse.)
@@ -277,10 +277,10 @@ allow update: if isUserSignedIn()
 ## 8. Admin panel changes (tfn_admin-panel)
 
 - ☐ Extend admin `UserModel` symmetrically.
-- ☐ Users tab ([lib/tabs/admin_tabs/users/users.dart](lib/tabs/admin_tabs/users/users.dart)):
+- ☐ Users tab ([../lib/tabs/admin_tabs/users/users.dart](../lib/tabs/admin_tabs/users/users.dart)):
   show `username`, follower/following counts; add **verify badge**, **reset username**,
   **block/unban** actions, reusing the overflow-menu + `UserMixin.hasAdminAccess` pattern from
-  [lib/mixins/comment_mixin.dart](lib/mixins/comment_mixin.dart).
+  [../lib/mixins/comment_mixin.dart](../lib/mixins/comment_mixin.dart).
 - ☐ _(optional)_ Dashboard cards: total follows, most-followed (later).
 
 ## 9. Phased delivery — Feature 1
@@ -357,7 +357,7 @@ created_at, like_count, comment_count, mentions: [] }`. Media in Storage `post_m
 ## 11. Cross-cutting: notifications routing summary
 
 New payloads to add to the app `NotificationService` routing (all-string values), consumed by
-[../tfn-app/lib/models/notification_model.dart](../tfn-app/lib/models/notification_model.dart):
+[../../tfn-app/lib/models/notification_model.dart](../../tfn-app/lib/models/notification_model.dart):
 `follow` → profile · `mention` → source · `post_like`/`post_comment` → post ·
 `message` → conversation. See §2.3 table.
 

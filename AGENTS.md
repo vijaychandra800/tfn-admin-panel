@@ -4,8 +4,8 @@ Canonical, tool-agnostic agent instructions for this repo. Any AI assistant work
 should read this file first. Other entry points (`.github/copilot-instructions.md`,
 `CLAUDE.md`) are thin pointers back to this file — **edit this file, not the pointers.**
 
-Deep architecture reference: [CONTEXT_ADMIN_PANEL.md](CONTEXT_ADMIN_PANEL.md).
-Roadmap / feature plan: [SOCIAL_FEATURES_PLAN.md](SOCIAL_FEATURES_PLAN.md).
+Deep architecture reference: [docs/CONTEXT_ADMIN_PANEL.md](docs/CONTEXT_ADMIN_PANEL.md).
+Roadmap / feature plan: [docs/SOCIAL_FEATURES_PLAN.md](docs/SOCIAL_FEATURES_PLAN.md).
 
 ## What this is
 
@@ -107,5 +107,5 @@ using the GitHub account `vijaychandra800` — **never** a work account. If a pu
 
 - Verify claims against `git diff` / `flutter analyze` before reporting work as done.
 - Do not create summary markdown files unless asked.
-- When a phase in [SOCIAL_FEATURES_PLAN.md](SOCIAL_FEATURES_PLAN.md) lands, update its
+- When a phase in [docs/SOCIAL_FEATURES_PLAN.md](docs/SOCIAL_FEATURES_PLAN.md) lands, update its
   status checkbox in the same change.
