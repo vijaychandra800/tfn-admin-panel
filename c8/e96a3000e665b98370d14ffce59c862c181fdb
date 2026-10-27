@@ -1,0 +1,194 @@
+openspec/config.yaml
+  s_c0ef2d331b359e::t_f89ab82815ea15 5-37
+  s_c0ef2d331b359e::t_6551f2badbaf49 2-4
+  s_c0ef2d331b359e::t_65b1f7119035e8 38-40
+  s_c0ef2d331b359e::t_1170d3c337dfbb 1,41-67
+AGENTS.md
+  s_c0ef2d331b359e::t_fd91bb1a95a464 89-104
+.agents/skills/.openspec-target
+  s_c0ef2d331b359e::t_3313c69c1d6a03 1
+.agents/skills/openspec-apply-change/SKILL.md
+  s_c0ef2d331b359e::t_745cfe9e126b48 1-206
+.agents/skills/openspec-archive-change/SKILL.md
+  s_c0ef2d331b359e::t_285bc29404a9e0 1-221
+.agents/skills/openspec-bulk-archive-change/SKILL.md
+  s_c0ef2d331b359e::t_0546a71946f191 1-377
+.agents/skills/openspec-continue-change/SKILL.md
+  s_c0ef2d331b359e::t_d57d2131ec150d 1-138
+.agents/skills/openspec-explore/SKILL.md
+  s_c0ef2d331b359e::t_28d4874fc409fa 1-356
+.agents/skills/openspec-ff-change/SKILL.md
+  s_c0ef2d331b359e::t_3a280aaa9f7696 1-129
+.agents/skills/openspec-new-change/SKILL.md
+  s_c0ef2d331b359e::t_e6224b767cc65d 1-88
+.agents/skills/openspec-onboard/SKILL.md
+  s_c0ef2d331b359e::t_1599fa57e95d11 1-575
+.agents/skills/openspec-propose/SKILL.md
+  s_c0ef2d331b359e::t_da119516922694 1-175
+.agents/skills/openspec-sync-specs/SKILL.md
+  s_c0ef2d331b359e::t_410ebfa5558e55 1-290
+.agents/skills/openspec-update-change/SKILL.md
+  s_c0ef2d331b359e::t_003029cc00800f 1-109
+.agents/skills/openspec-verify-change/SKILL.md
+  s_c0ef2d331b359e::t_bf8bcdfefc35ee 1-223
+.claude/commands/opsx/apply.md
+  s_c0ef2d331b359e::t_cb72f5a0acd508 1-202
+.claude/commands/opsx/archive.md
+  s_c0ef2d331b359e::t_232b125b22b8be 1-264
+.claude/commands/opsx/bulk-archive.md
+  s_c0ef2d331b359e::t_61a65d7f257e66 1-373
+.claude/commands/opsx/continue.md
+  s_c0ef2d331b359e::t_d049d8fcb15f5b 1-134
+.claude/commands/opsx/explore.md
+  s_c0ef2d331b359e::t_5c9997d4e3f2dc 1-241
+.claude/commands/opsx/ff.md
+  s_c0ef2d331b359e::t_2becd8010cd493 1-125
+.claude/commands/opsx/new.md
+  s_c0ef2d331b359e::t_dfcea830aeebd7 1-83
+.claude/commands/opsx/onboard.md
+  s_c0ef2d331b359e::t_57566c25787eba 1-571
+.claude/commands/opsx/propose.md
+  s_c0ef2d331b359e::t_90151bbded015d 1-171
+.claude/commands/opsx/sync.md
+  s_c0ef2d331b359e::t_8ad77170b7d9cf 1-286
+.claude/commands/opsx/update.md
+  s_c0ef2d331b359e::t_9960ff103eb1de 1-105
+.claude/commands/opsx/verify.md
+  s_c0ef2d331b359e::t_41e9c0bd929a86 1-218
+.claude/skills/openspec-apply-change/SKILL.md
+  s_c0ef2d331b359e::t_fecbc34a061556 1-206
+.claude/skills/openspec-archive-change/SKILL.md
+  s_c0ef2d331b359e::t_775b43ab1ea46b 1-221
+.claude/skills/openspec-bulk-archive-change/SKILL.md
+  s_c0ef2d331b359e::t_e5be1542855294 1-377
+.claude/skills/openspec-continue-change/SKILL.md
+  s_c0ef2d331b359e::t_5ef665dff655a9 1-138
+.claude/skills/openspec-explore/SKILL.md
+  s_c0ef2d331b359e::t_bbf02cd7d62f51 1-356
+.claude/skills/openspec-ff-change/SKILL.md
+  s_c0ef2d331b359e::t_460d31f2c99891 1-129
+.claude/skills/openspec-new-change/SKILL.md
+  s_c0ef2d331b359e::t_a7edbb6484a375 1-88
+.claude/skills/openspec-onboard/SKILL.md
+  s_c0ef2d331b359e::t_bc46c52d170bb7 1-575
+.claude/skills/openspec-propose/SKILL.md
+  s_c0ef2d331b359e::t_fc0efd1bf24e19 1-175
+.claude/skills/openspec-sync-specs/SKILL.md
+  s_c0ef2d331b359e::t_3222456d903751 1-290
+.claude/skills/openspec-update-change/SKILL.md
+  s_c0ef2d331b359e::t_af4ba038dbadf8 1-109
+.claude/skills/openspec-verify-change/SKILL.md
+  s_c0ef2d331b359e::t_f5b1553ac76b2c 1-223
+.cursor/commands/opsx-apply.md
+  s_c0ef2d331b359e::t_ca00d1ac3c1156 1-201
+.cursor/commands/opsx-archive.md
+  s_c0ef2d331b359e::t_db3a8778e7cdc5 1-263
+.cursor/commands/opsx-bulk-archive.md
+  s_c0ef2d331b359e::t_9ed3c61a601b7e 1-372
+.cursor/commands/opsx-continue.md
+  s_c0ef2d331b359e::t_c82b652a6bed73 1-133
+.cursor/commands/opsx-explore.md
+  s_c0ef2d331b359e::t_aaac83214cf861 1-240
+.cursor/commands/opsx-ff.md
+  s_c0ef2d331b359e::t_9de8c7450de92a 1-124
+.cursor/commands/opsx-new.md
+  s_c0ef2d331b359e::t_89836a56419671 1-82
+.cursor/commands/opsx-onboard.md
+  s_c0ef2d331b359e::t_8153f2483471f1 1-570
+.cursor/commands/opsx-propose.md
+  s_c0ef2d331b359e::t_1c0618ebb00926 1-170
+.cursor/commands/opsx-sync.md
+  s_c0ef2d331b359e::t_73347b375a7044 1-285
+.cursor/commands/opsx-update.md
+  s_c0ef2d331b359e::t_7c3223047e1d80 1-104
+.cursor/commands/opsx-verify.md
+  s_c0ef2d331b359e::t_9d11a7bf6df0d7 1-217
+.cursor/skills/openspec-apply-change/SKILL.md
+  s_c0ef2d331b359e::t_10890d2a20fd96 1-206
+.cursor/skills/openspec-archive-change/SKILL.md
+  s_c0ef2d331b359e::t_f735f89d9d9ff7 1-221
+.cursor/skills/openspec-bulk-archive-change/SKILL.md
+  s_c0ef2d331b359e::t_3115cf0e59c367 1-377
+.cursor/skills/openspec-continue-change/SKILL.md
+  s_c0ef2d331b359e::t_4757dcf462ac25 1-138
+.cursor/skills/openspec-explore/SKILL.md
+  s_c0ef2d331b359e::t_eb5812607226c4 1-356
+.cursor/skills/openspec-ff-change/SKILL.md
+  s_c0ef2d331b359e::t_1d4d1c7bfda898 1-129
+.cursor/skills/openspec-new-change/SKILL.md
+  s_c0ef2d331b359e::t_caa1ea69c06708 1-88
+.cursor/skills/openspec-onboard/SKILL.md
+  s_c0ef2d331b359e::t_501a9b91c35b06 1-575
+.cursor/skills/openspec-propose/SKILL.md
+  s_c0ef2d331b359e::t_88f9db6bdfecca 1-175
+.cursor/skills/openspec-sync-specs/SKILL.md
+  s_c0ef2d331b359e::t_d157c9323ff5a5 1-290
+.cursor/skills/openspec-update-change/SKILL.md
+  s_c0ef2d331b359e::t_6c5f247c7be241 1-109
+.cursor/skills/openspec-verify-change/SKILL.md
+  s_c0ef2d331b359e::t_0ae3ce416f0c23 1-223
+.github/prompts/opsx-apply.prompt.md
+  s_c0ef2d331b359e::t_5a61be7441b227 1-198
+.github/prompts/opsx-archive.prompt.md
+  s_c0ef2d331b359e::t_d72dbacddc55e6 1-260
+.github/prompts/opsx-bulk-archive.prompt.md
+  s_c0ef2d331b359e::t_dc2a8953b02251 1-369
+.github/prompts/opsx-continue.prompt.md
+  s_c0ef2d331b359e::t_b51767ae3c08ef 1-130
+.github/prompts/opsx-explore.prompt.md
+  s_c0ef2d331b359e::t_703fe405b257cd 1-237
+.github/prompts/opsx-ff.prompt.md
+  s_c0ef2d331b359e::t_bcfda4b21e1616 1-121
+.github/prompts/opsx-new.prompt.md
+  s_c0ef2d331b359e::t_59fece3b76f991 1-79
+.github/prompts/opsx-onboard.prompt.md
+  s_c0ef2d331b359e::t_b1833f8bca25dc 1-567
+.github/prompts/opsx-propose.prompt.md
+  s_c0ef2d331b359e::t_f522916a6109b6 1-167
+.github/prompts/opsx-sync.prompt.md
+  s_c0ef2d331b359e::t_2ca1b4fb59aa3f 1-282
+.github/prompts/opsx-update.prompt.md
+  s_c0ef2d331b359e::t_8136c28a62786a 1-101
+.github/prompts/opsx-verify.prompt.md
+  s_c0ef2d331b359e::t_c660e54162f969 1-214
+.github/skills/openspec-apply-change/SKILL.md
+  s_c0ef2d331b359e::t_5da0d268500e3a 1-206
+.github/skills/openspec-archive-change/SKILL.md
+  s_c0ef2d331b359e::t_b59140f54488e7 1-221
+.github/skills/openspec-bulk-archive-change/SKILL.md
+  s_c0ef2d331b359e::t_adfd86563bf6d0 1-377
+.github/skills/openspec-continue-change/SKILL.md
+  s_c0ef2d331b359e::t_0e306151133289 1-138
+.github/skills/openspec-explore/SKILL.md
+  s_c0ef2d331b359e::t_0b019d0a820f79 1-356
+.github/skills/openspec-ff-change/SKILL.md
+  s_c0ef2d331b359e::t_775fc7a2f75a12 1-129
+.github/skills/openspec-new-change/SKILL.md
+  s_c0ef2d331b359e::t_a9cc6140445b77 1-88
+.github/skills/openspec-onboard/SKILL.md
+  s_c0ef2d331b359e::t_9bdc75099b4052 1-575
+.github/skills/openspec-propose/SKILL.md
+  s_c0ef2d331b359e::t_23972e0a80166b 1-175
+.github/skills/openspec-sync-specs/SKILL.md
+  s_c0ef2d331b359e::t_2375d122305c88 1-290
+.github/skills/openspec-update-change/SKILL.md
+  s_c0ef2d331b359e::t_5187492dcbd342 1-109
+.github/skills/openspec-verify-change/SKILL.md
+  s_c0ef2d331b359e::t_cf2e90f8ccc68a 1-223
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c8e96a3000e665b98370d14ffce59c862c181fdb",
+  "prompts": {},
+  "sessions": {
+    "s_c0ef2d331b359e": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "340e049b-236d-4825-87ee-4145ede48813",
+        "model": "copilot/claude-opus-5"
+      },
+      "human_author": "vijaychandra800 <vijaychandra800@gmail.com>"
+    }
+  }
+}
