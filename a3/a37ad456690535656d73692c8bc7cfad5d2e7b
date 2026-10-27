@@ -1,0 +1,29 @@
+openspec/changes/add-profile-foundation/design.md
+  s_c0ef2d331b359e::t_f525bb37c1efe6 1-119
+openspec/changes/add-profile-foundation/specs/user-profile/spec.md
+  s_c0ef2d331b359e::t_8dbcd00841c886 1-138
+openspec/changes/add-profile-foundation/proposal.md
+  s_c0ef2d331b359e::t_5e22ae9e153109 1-83
+docs/SOCIAL_FEATURES_PLAN.md
+  s_c0ef2d331b359e::t_95218ff3337494 14-23,33,300,303-305
+openspec/changes/add-profile-foundation/tasks.md
+  s_c0ef2d331b359e::t_17df487361fe1d 1-80
+openspec/changes/add-profile-foundation/.openspec.yaml
+  s_c0ef2d331b359e::t_90c7a0623d35d2 1-2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a3a37ad456690535656d73692c8bc7cfad5d2e7b",
+  "prompts": {},
+  "sessions": {
+    "s_c0ef2d331b359e": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "340e049b-236d-4825-87ee-4145ede48813",
+        "model": "copilot/claude-opus-5"
+      },
+      "human_author": "vijaychandra800 <vijaychandra800@gmail.com>"
+    }
+  }
+}
