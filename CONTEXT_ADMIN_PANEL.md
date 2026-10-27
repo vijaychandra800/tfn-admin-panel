@@ -4,6 +4,11 @@
 
 This project is the Flutter web admin surface for Track Field Network. It is used by admins and authors to manage content, users, notifications, purchases, ads, and app settings stored in Firebase.
 
+> **This file is reference, not rules.** Enforceable agent rules live in
+> [AGENTS.md](AGENTS.md) at the repo root and are loaded automatically by AI tools.
+> Path-scoped rules live in `.github/instructions/`. Use this document for architecture
+> and "where do I change X" lookups; put anything an agent must *always* obey in AGENTS.md.
+
 ## Roadmap / Feature Plans
 
 - **Social features (Profiles + Follow, User-generated Posts, Messaging MVP):** the full
